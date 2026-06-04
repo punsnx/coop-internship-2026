@@ -10,8 +10,16 @@
 
 ## Input & Output
 
-- **Input:** A WALA scope file (`-scopeFile`) — a plain text file with one `Loader,Language,type,path` entry per line — combined with either `-mainClass` (JVM internal name of the class whose `main()` is the entrypoint) or `-entryClass` (all public methods used as entrypoints). The scope file must contain at least a `Primordial,Java,stdlib,none` line and an `Application,Java,binaryDir,<path>` (or `classFile`) line pointing to the compiled bytecode.
-- **Output:** Class count, WALA warnings, call graph build time, call graph statistics (nodes / edges / methods / bytecode bytes), and an `=== Application Call Graph ===` section listing every application method with its direct callees.
+- **Input:** 
+  - A WALA scope file (`-scopeFile`) is a plain text file with one `Loader,Language,type,path` entry per line.
+  - Then combined with either `-mainClass` (JVM internal name of the class whose `main()` is the entrypoint) or `-entryClass` (all public methods used as entrypoints).
+  - The scope file must contain at least a `Primordial,Java,stdlib,none` line and an `Application,Java,binaryDir,<path>` (or `classFile`) line pointing to the compiled bytecode.
+- **Output:** 
+  - `Class count`
+  - `WALA warnings`
+  - `call graph build time`
+  - `call graph statistics` (nodes / edges / methods / bytecode bytes)
+  - `Application Call Graph` section listing every application method with its direct callees (optional).
 
 ---
 
@@ -30,15 +38,14 @@
 | `com.ibm.wala:com.ibm.wala.core`   | 1.7.2 |
 | `com.ibm.wala:com.ibm.wala.util`   | 1.7.2 |
 | `com.ibm.wala:com.ibm.wala.shrike` | 1.7.2 |
-| `org.eclipse.jdt:ecj` (pinned)     | 3.36.0 |
 | Java Version (tested)              | 21 |
 
 ### Steps
 
 0. **Install JDK 21**
-```bash
-brew install oracle-jdk@21 && echo "export JAVA_HOME=/path/to/java_home" >> ~/.bash_profile
-```
+   ```bash
+   brew install oracle-jdk@21 && echo "export JAVA_HOME=/path/to/java_home" >> ~/.bashrc
+   ```
 
 1. **Clone and build the project:**
    ```bash
@@ -91,6 +98,8 @@ brew install oracle-jdk@21 && echo "export JAVA_HOME=/path/to/java_home" >> ~/.b
    ```
 
    **NOTE:** For full automates steps 3–6 script: (run it at WALA-start project root directory)
+   
+   > **test.sh** 
    > ```bash
    >
    > #!/bin/bash
@@ -116,29 +125,31 @@ brew install oracle-jdk@21 && echo "export JAVA_HOME=/path/to/java_home" >> ~/.b
    > SCOPE_FILE="$SCRIPT_DIR/scope.txt"
    >
    > {
-   >echo "Primordial,Java,stdlib,none"
-   >echo "Application,Java,binaryDir,$BUILD_DIR"
-   >} > "$SCOPE_FILE"
-   >
-   >JDK_HOME="${JAVA_HOME:?JAVA_HOME must be set}"
-   >
-   >if [ ! -f /tmp/wala-stdlib/java.base.jar ]; then
-   >echo "Building WALA stdlib cache (one-time)..."
-   >mkdir -p /tmp/wala-stdlib/x
-   >unzip -q "$JDK_HOME/jmods/java.base.jmod" -d /tmp/wala-stdlib/x || true
-   >"$JDK_HOME/bin/jar" cf /tmp/wala-stdlib/java.base.jar \
-   >-C /tmp/wala-stdlib/x/classes .
-   >rm -rf /tmp/wala-stdlib/x
-   >fi
-   >
-   ># Test script below this section
-   ># --- ScopeFileCallGraph ---
-   >"$SCRIPT_DIR/gradlew" -p "$SCRIPT_DIR" run \
-   >-PmainClass=com.ibm.wala.examples.drivers.ScopeFileCallGraph \
-   >--args="-scopeFile $SCOPE_FILE -mainClass Lcom/example/Main"
+   > echo "Primordial,Java,stdlib,none"
+   > echo "Application,Java,binaryDir,$BUILD_DIR"
+   > } > "$SCOPE_FILE"
    > 
+   > JDK_HOME="${JAVA_HOME:?JAVA_HOME must be set}"
+   > 
+   > if [ ! -f /tmp/wala-stdlib/java.base.jar ]; then
+   > echo "Building WALA stdlib cache (one-time)..."
+   > mkdir -p /tmp/wala-stdlib/x
+   > unzip -q "$JDK_HOME/jmods/java.base.jmod" -d /tmp/wala-stdlib/x || true
+   > "$JDK_HOME/bin/jar" cf /tmp/wala-stdlib/java.base.jar \
+   > -C /tmp/wala-stdlib/x/classes .
+   > rm -rf /tmp/wala-stdlib/x
+   > fi
+   > 
+   > # Test script below this section
+   > # --- ScopeFileCallGraph ---
+   > "$SCRIPT_DIR/gradlew" -p "$SCRIPT_DIR" run \
+   > -PmainClass=com.ibm.wala.examples.drivers.ScopeFileCallGraph \
+   > --args="-scopeFile $SCOPE_FILE -mainClass Lcom/example/Main"
+   >  
    > ```
+   ***JAVA_HOME*** uncomment if you have a different JDK version.
 
+   ***Replace*** `BUILD_DIR` for your build_class_path and `-mainClass Lcom/example/Main` for the entrypoint for your application.
 ### Class name format
 
 WALA uses JVM internal names. Prefix `L`, replace `.` with `/`:
@@ -150,7 +161,7 @@ WALA uses JVM internal names. Prefix `L`, replace `.` with `/`:
 
 ---
 
-### Sample Input
+### Program Code
 
 **`ScopeFileCallGraph.java`**
 ```java
@@ -238,6 +249,8 @@ public class ScopeFileCallGraph {
 
 
 ```
+
+### Sample Input
 
 **`Main.java`**
 ```java
