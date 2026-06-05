@@ -28,4 +28,8 @@ Fun fact that's I never do the program Analysis It'd be so hard to know what pro
 7. During the week, Planning is also important to make sure that work will done and every will have their own works
    - I also do the Project Manager role and help my friends a lot from doing 
      - github repository setup, formatting, testing scripts, and much more
-   - By creating task 
+   - By creating task list and Assigning task using Agile approach help our team so much to work together and make sure that the work will done.
+
+**Thanks for reading**
+   
+   - Sirisuk Tharntham
