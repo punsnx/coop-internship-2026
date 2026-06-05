@@ -214,29 +214,49 @@ public class CSReachingDefsDriver {
 ```
 
 ### Example Input Code:
+**`Main.java`**
 ```java
+package com.sirisuk;
+
+public class Main {
+    public static void main(String[] args) {
+        AnalysisClass.run();
+    }
+}
+```
+
+**`AnalysisClass.java`**
+```java
+package com.sirisuk;
+
 public class AnalysisClass {
-    public AnalysisClass() {
+
+    public static long up(int n) {
+        if (n <= 1) return n;
+        long[] dp = new long[n + 1];
+        dp[0] = 0; dp[1] = 1;
+        for (int i = 2; i <= n; i++) dp[i] = dp[i - 1] + dp[i - 2];
+        return dp[n];
     }
 
-    public static void main(String[] var0) {
-        byte var1 = 10;
-        System.out.println("Printing first " + var1 + " Fibonacci numbers:");
-        printFibonacci(var1);
+    private static long[] memo = new long[100];
+
+    public static long down(int n) {
+        if (n <= 1) return n;
+        if (memo[n] != 0) return memo[n];
+        memo[n] = down(n - 1) + down(n - 2);
+        return memo[n];
     }
 
-    public static void printFibonacci(int var0) {
-        int var1 = 0;
-        int var2 = 1;
-
-        for(int var3 = 0; var3 < var0; ++var3) {
-            System.out.print(var1 + " ");
-            int var4 = var1 + var2;
-            var1 = var2;
-            var2 = var4;
+    public static void run() {
+        int n = 10;
+        System.out.println("Fibonacci DP Demo (n = " + n + ")");
+        System.out.println("Bottom-up : " + up(n));
+        System.out.println("Top-down  : " + down(n));
+        System.out.println("\nSequence (0.." + n + "):");
+        for (int i = 0; i <= n; i++) {
+            System.out.print(up(i) + (i < n ? " " : "\n"));
         }
-
-        System.out.println();
     }
 }
 ```
