@@ -2,6 +2,19 @@
 
 ---
 
+## Table of Contents
+
+- [Functionality](#functionality)
+- [Input & Output](#input--output)
+- [Run Instructions](#run-instructions)
+   - [Prerequisites](#prerequisites)
+   - [Steps](#steps)
+   - [Sample Input](#sample-input)
+   - [Expected Output](#expected-output)
+- [Reproducibility](#reproducibility)
+
+---
+
 ## Functionality
 
 `PrintTypeHierarchy` analyzes the execution environment to build a comprehensive class hierarchy. It explicitly denotes direct inheritance relationships using the format:
@@ -51,7 +64,7 @@
    python3 run.py com.ibm.wala.examples.drivers.PrintTypeHierachy path/to/class
    ```
 
-### **Example Input Code:**
+### Sample Input
 ```java
 public class AnalysisClass {
     public AnalysisClass() {
@@ -79,7 +92,7 @@ public class AnalysisClass {
 }
 ```
 
-### **Example Output:**
+### Expected Output
 
 ```text
 <Primordial,Lcom/ibm/wala/model/SyntheticFactory>:
@@ -88,3 +101,9 @@ public class AnalysisClass {
 <Primordial,Lcom/ibm/wala/model/java/lang/reflect/Array>:
 <Application,LAnalysisClass>:
 ```
+
+---
+
+## Reproducibility
+
+---

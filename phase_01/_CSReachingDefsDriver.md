@@ -2,6 +2,19 @@
 
 ---
 
+## Table of Contents
+
+- [Functionality](#functionality)
+- [Input & Output](#input--output)
+- [Run Instructions](#run-instructions)
+   - [Prerequisites](#prerequisites)
+   - [Steps](#steps)
+   - [Sample Input](#sample-input)
+   - [Expected Output](#expected-output)
+- [Reproducibility](#reproducibility)
+
+---
+
 ## Functionality
 
 `CSReachingDefsDriver` reads the bytecode and perform an **interprocedural, context-sensitive dataflow analysis**. It computes accross the entire application call graph using a tabulation solver.
@@ -50,7 +63,7 @@
    python3 run.py com.ibm.wala.examples.drivers.CSReachingDefsDriver -scopeFile path/to/scope -mainClass LAnalysisClass
    ```
    
-### **Example Input Code:**
+### Sample Input
 ```java
 public class AnalysisClass {
     public AnalysisClass() {
@@ -78,7 +91,7 @@ public class AnalysisClass {
 }
 ```
 
-### **Example Output:**
+### Expected Output
 
 ```text
 1. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Lapple/security/AppleProvider$ProviderService> No superclass found for <Primordial,Lapple/security/AppleProvider$ProviderService> Superclass name Ljava/security/Provider$Service
@@ -96,3 +109,9 @@ Call graph stats:
   Bytecode Bytes: 386601
 
 ```
+
+---
+
+## Reproducibility
+
+---
