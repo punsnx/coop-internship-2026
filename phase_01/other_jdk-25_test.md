@@ -128,7 +128,7 @@ Application,Java,binaryDir,/absolute/path/to/build_dir
 
 ---
 
-### Driver `namme`
+### Driver `name`
 
 - **Test command**
 
@@ -136,7 +136,7 @@ Application,Java,binaryDir,/absolute/path/to/build_dir
 
 ---
 
-### Driver `namme`
+### Driver `name`
 
 - **Test command**
 
