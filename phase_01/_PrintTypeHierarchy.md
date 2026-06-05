@@ -4,7 +4,7 @@
 
 ## Functionality
 
-`PrintTypeHierarchy` is a WALA driver that constructs and prints the type hierarchy of a Java application based on the compiled bytecode
+`PrintTypeHierarchy` is a WALA driver designed to analyze and display the type hierarchy of a Java application based on its compiled bytecode. This involves generating data about class relationships and inheritance from parsed .class files and presenting this information in a structured format that helps users understand the architecture and structure of the software.
 
 ---
 
