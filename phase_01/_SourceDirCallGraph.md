@@ -61,16 +61,16 @@
    export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home
    ./gradlew compileJava
    ```
-2. **Configure build.gradle.kts**
-```kotlin
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)   // use system JDK 21
-
-configurations.all {
-  resolutionStrategy {
-    force("org.eclipse.jdt:ecj:3.36.0")   // pin ECJ to match jdt.core version
-  }
-}
-```
+2. **Configure build.gradle.kts:**
+    ```kotlin
+        java.toolchain.languageVersion = JavaLanguageVersion.of(21)   // use system JDK 21
+        
+        configurations.all {
+          resolutionStrategy {
+            force("org.eclipse.jdt:ecj:3.36.0")   // pin ECJ to match jdt.core version
+          }
+        }
+    ```
 
 3. **Build the WALA stdlib cache (one-time setup):**
 
