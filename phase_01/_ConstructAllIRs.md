@@ -684,4 +684,20 @@ RUNNING TIME: 308
 
 ## Reproducibility
 
+✅ PASS
+
+### Observations
+- If no not implement per-method IR output, driver only reports total running time; `cache.getIR()` results are held in soft-reference cache and not printed
+- ```java
+    IR ir = cache.getIR(method, Everywhere.EVERYWHERE);
+    // print out IR
+        if (ir != null) {
+    System.out.println("=== IR for: " + method.getSignature() + " ===");
+    System.out.println(ir);
+  ```
+
+### Difference from Reference
+✅ Matches reference behavior.
+[View logs](https://github.com/punsnx/coop-internship-2026/blob/56f5ed0f417941e58eb9a887bab6ca6332421f3f/phase_01/other/assets/sirisuk/test-logs/ConstructAllIRs.log)
+
 ---
