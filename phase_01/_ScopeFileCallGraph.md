@@ -504,4 +504,18 @@ Call graph stats:
 
 ## Reproducibility
 
+### Result
+
+✅ PASS
+
+### Observations
+the program can run without any problem.
+- there exists some warnings cause by class not found.
+- `[Moderate] ClassExclusion` warnings - `java/security/*` subclasses whose superclass is excluded; expected side effect of `addDefaultExclusions`
+- `[SEVERE] ClassNotFoundWarning` - `java/security` and `sun/*` interfaces not found; same cause as above
+
+### Difference from Reference
+✅ Matches reference behavior.
+[View logs](https://github.com/punsnx/coop-internship-2026/blob/56f5ed0f417941e58eb9a887bab6ca6332421f3f/phase_01/other/assets/sirisuk/test-logs/ScopeFileCallGraph.log)
+
 ---
