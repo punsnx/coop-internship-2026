@@ -15,11 +15,9 @@
 - [Running Parameters and Switching](#running-parameters-and-switching)
 - [Scope File Format](#scope-file-format)
 - [Configuration Files](#configuration-files)
+- [How It All Works](#how-it-all-works)
 - [Further Understanding: Analyzing a Different Target](#further-understanding-analyzing-a-different-target)
-- [Key WALA Concepts](#key-wala-concepts)
 - [Java Compilation Pipeline](#java-compilation-pipeline)
-- [How It All Works — Deep Dive](#how-it-all-works--deep-dive)
-- [Java rt Deprecated (replace with jmods)](#java-rt-deprecated-replace-with-jmods)
 - [Our Troubleshooting](#our-troubleshooting)
 
 ---
@@ -268,14 +266,8 @@ The ECJ pin prevents a `NoSuchMethodError` caused by Gradle upgrading ECJ to an 
 
 ---
 
-## Key WALA Concepts
-
-> **Owner: Pichaphop**
-
-
----
-
-## Java Compilation Pipeline
+## How It All Works
+### Java Compilation Pipeline
 
 ### 1. Overview — Java Execution Stack
 
@@ -417,20 +409,6 @@ Analysis result    ← reaching defs, points-to sets, security vulnerabilities, 
 ```
 
 Each step enriches the model: CHA knows **what exists**, IR knows **what happens inside**, CallGraph knows **who calls whom**, and analysis layers answer specific security or correctness questions on top of all three.
-
----
-
-## How It All Works — Deep Dive
-
-> **Owner: Pichaphop**
-
-
----
-
-## Java rt Deprecated (replace with jmods)
-
-> **Owner: Pichaphop**
-
 
 ---
 
