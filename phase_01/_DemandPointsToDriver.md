@@ -347,6 +347,6 @@ import javax.swing.JTabbedPane;
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     frame.setVisible(true);
 ```
-
+![Photo](phase_01/other/assets/pichaphop/WALA_viewer_example.png)
 
 ---
