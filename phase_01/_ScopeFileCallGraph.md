@@ -360,6 +360,9 @@ Call graph stats:
 
 ```
 
+- **Visualization** 
+  - Control Flow Graph (CFG), Basic Block (BB) and Call Graph (CG) [View PDF](https://github.com/punsnx/coop-internship-2026/blob/8a106723616c2ea583a12b792f0d72630798bec9/phase_01/other/assets/global/visualize_ScopeFileCallGraph.pdf)
+  
 ---
 
 ## Reproducibility
