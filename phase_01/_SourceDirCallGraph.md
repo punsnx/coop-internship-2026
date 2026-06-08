@@ -434,4 +434,30 @@ METHOD: com.sirisuk.AnalysisClass.down()
 
 ## Reproducibility
 
+### Result 
+✅ PASS 
+
+### Observations
+the program may run slower than expected cause by unreachable JDK but able to fix
+#### Performance Note
+Without exclusions, the CHA algorithm loads thousands of unreachable JDK library classes and analysis time grows significantly.
+
+- `ExampleUtil.addDefaultExclusions(scope)` filters `java/awt`, `javax/swing`, `sun/*`, etc.
+- Adding `jdk/.*` to `Exclusions.txt` (or pinning it in `src/main/resources/Exclusions.txt`) would further reduce load by excluding JDK 9+ module-internal classes
+
+#### Fix Applied
+Pinned ECJ to a compatible version in `build.gradle.kts`:
+
+```kotlin
+configurations.all {
+  resolutionStrategy {
+    force("org.eclipse.jdt:ecj:3.36.0")
+  }
+}
+```
+
+### Difference from Reference
+✅ Matches reference behavior.
+
+
 ---
