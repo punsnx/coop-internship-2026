@@ -304,4 +304,17 @@ Call graph stats:
 
 ## Reproducibility
 
+✅ PASS
+
+### Observations
+adding the dependencies exclusion `Exclusion.txt` help program run faster with graph construction.
+```java
+List<String> patterns = Files.readAllLines(Paths.get("src/main/resources/Exclusions.txt"));
+scope.setExclusions(new PatternsFilter(patterns.stream()));
+```
+
+### Difference from Reference
+✅ Matches reference behavior.
+[View logs](https://github.com/punsnx/coop-internship-2026/blob/56f5ed0f417941e58eb9a887bab6ca6332421f3f/phase_01/other/assets/sirisuk/test-logs/CSReachingDefsDriver.log)
+
 ---
