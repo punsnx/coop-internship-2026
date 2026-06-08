@@ -348,7 +348,16 @@ Call graph stats:
 
 #### Expected Output
 
-The driver will generate a .pdf file that convert the ClassHierachy into a Graph using graphviz
+A PDF file opens automatically showing the type hierarchy of the application classes as a directed graph:
+
+```
+<Primordial,Ljava/lang/Object>
+        |                    |
+        ▼                    ▼
+<Application,             <Application,
+ Lcom/sirisuk/             Lcom/sirisuk/
+ AnalysisClass>            Main>
+```
 
 ---
 
