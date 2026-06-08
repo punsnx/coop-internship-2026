@@ -1,0 +1,91 @@
+
+> Task :compileJava
+/Users/sirisuk/Desktop/SKDEV/CS/y4s1/internship/test-app/wala/WALA-start-test/src/main/java/com/ibm/wala/examples/analysis/SimpleThreadEscapeAnalysis.java:94: warning: [removal] makeZeroCFABuilder(Language,AnalysisOptions,IAnalysisCacheView,IClassHierarchy,AnalysisScope) in Util has been deprecated and marked for removal
+    return Util.makeZeroCFABuilder(Language.JAVA, options, cache, cha, scope);
+               ^
+/Users/sirisuk/Desktop/SKDEV/CS/y4s1/internship/test-app/wala/WALA-start-test/src/main/java/com/ibm/wala/examples/analysis/SimpleThreadEscapeAnalysis.java:196: warning: [removal] makeMainEntrypoints(AnalysisScope,IClassHierarchy,String) in Util has been deprecated and marked for removal
+    Iterable<Entrypoint> roots = Util.makeMainEntrypoints(getScope(), cha, applicationMainClass);
+                                     ^
+Note: /Users/sirisuk/Desktop/SKDEV/CS/y4s1/internship/test-app/wala/WALA-start-test/src/main/java/com/ibm/wala/examples/analysis/SimpleThreadEscapeAnalysis.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+2 warnings
+
+> Task :processResources
+> Task :classes
+
+> Task :run
+2933 classes
+1. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/io/FileCleanable> No superclass found for <Primordial,Ljava/io/FileCleanable> Superclass name Ljdk/internal/ref/PhantomCleanable
+2. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/io/FilePermission> No superclass found for <Primordial,Ljava/io/FilePermission> Superclass name Ljava/security/Permission
+3. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/io/FilePermissionCollection> No superclass found for <Primordial,Ljava/io/FilePermissionCollection> Superclass name Ljava/security/PermissionCollection
+4. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/io/SerializablePermission> No superclass found for <Primordial,Ljava/io/SerializablePermission> Superclass name Ljava/security/BasicPermission
+5. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/lang/RuntimePermission> No superclass found for <Primordial,Ljava/lang/RuntimePermission> Superclass name Ljava/security/BasicPermission
+6. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/lang/VirtualThread$VThreadContinuation> No superclass found for <Primordial,Ljava/lang/VirtualThread$VThreadContinuation> Superclass name Ljdk/internal/vm/Continuation
+7. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/lang/foreign/SymbolLookup$1> No superclass found for <Primordial,Ljava/lang/foreign/SymbolLookup$1> Superclass name Ljdk/internal/foreign/MemorySessionImpl$ResourceList$ResourceCleanup
+8. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/lang/invoke/InnerClassLambdaMetafactory$ForwardingMethodGenerator> No superclass found for <Primordial,Ljava/lang/invoke/TypeConvertingMethodAdapter> Superclass name Ljdk/internal/org/objectweb/asm/MethodVisitor
+9. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/lang/invoke/TypeConvertingMethodAdapter> No superclass found for <Primordial,Ljava/lang/invoke/TypeConvertingMethodAdapter> Superclass name Ljdk/internal/org/objectweb/asm/MethodVisitor
+10. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/net/FactoryURLClassLoader> No superclass found for <Primordial,Ljava/net/URLClassLoader> Superclass name Ljava/security/SecureClassLoader
+11. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/net/NetPermission> No superclass found for <Primordial,Ljava/net/NetPermission> Superclass name Ljava/security/BasicPermission
+12. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/net/SocketPermission> No superclass found for <Primordial,Ljava/net/SocketPermission> Superclass name Ljava/security/Permission
+13. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/net/SocketPermissionCollection> No superclass found for <Primordial,Ljava/net/SocketPermissionCollection> Superclass name Ljava/security/PermissionCollection
+14. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/net/URLClassLoader> No superclass found for <Primordial,Ljava/net/URLClassLoader> Superclass name Ljava/security/SecureClassLoader
+15. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/net/URLPermission> No superclass found for <Primordial,Ljava/net/URLPermission> Superclass name Ljava/security/Permission
+16. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/nio/file/LinkPermission> No superclass found for <Primordial,Ljava/nio/file/LinkPermission> Superclass name Ljava/security/BasicPermission
+17. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/util/Locale$Cache> No superclass found for <Primordial,Ljava/util/Locale$Cache> Superclass name Lsun/util/locale/LocaleObjectCache
+18. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/util/PropertyPermission> No superclass found for <Primordial,Ljava/util/PropertyPermission> Superclass name Ljava/security/BasicPermission
+19. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/util/PropertyPermissionCollection> No superclass found for <Primordial,Ljava/util/PropertyPermissionCollection> Superclass name Ljava/security/PermissionCollection
+20. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/util/ResourceBundle$Control$CandidateListCache> No superclass found for <Primordial,Ljava/util/ResourceBundle$Control$CandidateListCache> Superclass name Lsun/util/locale/LocaleObjectCache
+21. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/util/SplittableRandom$AbstractSplittableGeneratorProxy> No superclass found for <Primordial,Ljava/util/SplittableRandom$AbstractSplittableGeneratorProxy> Superclass name Ljdk/internal/util/random/RandomSupport$AbstractSplittableGenerator
+22. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/util/concurrent/ThreadPerTaskExecutor> No superclass found for <Primordial,Ljava/util/concurrent/ThreadPerTaskExecutor> Superclass name Ljdk/internal/vm/ThreadContainer
+23. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljavax/net/ssl/SSLPermission> No superclass found for <Primordial,Ljavax/net/ssl/SSLPermission> Superclass name Ljava/security/BasicPermission
+24. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljava/lang/reflect/AnnotatedElement
+25. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljava/lang/reflect/GenericDeclaration
+26. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljava/lang/reflect/InvocationHandler
+27. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljava/lang/reflect/Member
+28. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljava/lang/reflect/Type
+29. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljava/security/Principal
+30. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljava/security/PrivilegedAction
+31. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljava/security/PrivilegedExceptionAction
+32. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljdk/internal/access/JavaIOAccess
+33. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljdk/internal/access/JavaIOFileDescriptorAccess
+34. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljdk/internal/access/JavaIOFilePermissionAccess
+35. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljdk/internal/access/JavaIOPrintStreamAccess
+36. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljdk/internal/access/JavaIOPrintWriterAccess
+37. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljdk/internal/access/JavaIORandomAccessFileAccess
+38. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljdk/internal/access/JavaLangAccess
+39. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljdk/internal/access/JavaLangInvokeAccess
+40. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljdk/internal/access/JavaLangModuleAccess
+41. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljdk/internal/access/JavaLangRefAccess
+42. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljdk/internal/access/JavaNetHttpCookieAccess
+43. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljdk/internal/access/JavaNetInetAddressAccess
+44. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljdk/internal/access/JavaNetURLAccess
+45. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljdk/internal/access/JavaNetUriAccess
+46. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljdk/internal/access/JavaNioAccess
+47. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljdk/internal/access/JavaTemplateAccess
+48. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljdk/internal/access/JavaUtilCollectionAccess
+49. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljdk/internal/access/JavaUtilConcurrentFJPAccess
+50. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljdk/internal/access/JavaUtilConcurrentTLRAccess
+51. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljdk/internal/access/JavaUtilResourceBundleAccess
+52. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljdk/internal/access/foreign/UnmapperProxy
+53. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljdk/internal/misc/Signal$Handler
+54. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljdk/internal/misc/VM$BufferPool
+55. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljdk/internal/util/FormatConcatItem
+56. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Lsun/nio/ch/DirectBuffer
+57. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Lsun/nio/ch/Interruptible
+58. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Lsun/util/locale/provider/LocaleServiceProviderPool$LocalizedObjectGetter
+
+building call graph...
+done
+took 689ms
+Call graph stats:
+  Nodes: 1137
+  Edges: 4907
+  Methods: 706
+  Bytecode Bytes: 44401
+
+
+[Incubating] Problems report is available at: file:///Users/sirisuk/Desktop/SKDEV/CS/y4s1/internship/test-app/wala/WALA-start-test/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 5s
+3 actionable tasks: 3 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.5.1/userguide/configuration_cache_enabling.html

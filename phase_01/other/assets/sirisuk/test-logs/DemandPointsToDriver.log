@@ -1,0 +1,21 @@
+
+> Task :compileJava
+/Users/sirisuk/Desktop/SKDEV/CS/y4s1/internship/test-app/wala/WALA-start-test/src/main/java/com/ibm/wala/examples/analysis/SimpleThreadEscapeAnalysis.java:94: warning: [removal] makeZeroCFABuilder(Language,AnalysisOptions,IAnalysisCacheView,IClassHierarchy,AnalysisScope) in Util has been deprecated and marked for removal
+    return Util.makeZeroCFABuilder(Language.JAVA, options, cache, cha, scope);
+               ^
+/Users/sirisuk/Desktop/SKDEV/CS/y4s1/internship/test-app/wala/WALA-start-test/src/main/java/com/ibm/wala/examples/analysis/SimpleThreadEscapeAnalysis.java:196: warning: [removal] makeMainEntrypoints(AnalysisScope,IClassHierarchy,String) in Util has been deprecated and marked for removal
+    Iterable<Entrypoint> roots = Util.makeMainEntrypoints(getScope(), cha, applicationMainClass);
+                                     ^
+Note: /Users/sirisuk/Desktop/SKDEV/CS/y4s1/internship/test-app/wala/WALA-start-test/src/main/java/com/ibm/wala/examples/analysis/SimpleThreadEscapeAnalysis.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+2 warnings
+
+> Task :processResources
+> Task :classes
+> Task :run
+
+[Incubating] Problems report is available at: file:///Users/sirisuk/Desktop/SKDEV/CS/y4s1/internship/test-app/wala/WALA-start-test/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 4s
+3 actionable tasks: 3 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.5.1/userguide/configuration_cache_enabling.html

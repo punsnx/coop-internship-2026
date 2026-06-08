@@ -1,0 +1,101 @@
+
+> Task :compileJava
+/Users/sirisuk/Desktop/SKDEV/CS/y4s1/internship/test-app/wala/WALA-start-test/src/main/java/com/ibm/wala/examples/analysis/SimpleThreadEscapeAnalysis.java:94: warning: [removal] makeZeroCFABuilder(Language,AnalysisOptions,IAnalysisCacheView,IClassHierarchy,AnalysisScope) in Util has been deprecated and marked for removal
+    return Util.makeZeroCFABuilder(Language.JAVA, options, cache, cha, scope);
+               ^
+/Users/sirisuk/Desktop/SKDEV/CS/y4s1/internship/test-app/wala/WALA-start-test/src/main/java/com/ibm/wala/examples/analysis/SimpleThreadEscapeAnalysis.java:196: warning: [removal] makeMainEntrypoints(AnalysisScope,IClassHierarchy,String) in Util has been deprecated and marked for removal
+    Iterable<Entrypoint> roots = Util.makeMainEntrypoints(getScope(), cha, applicationMainClass);
+                                     ^
+Note: /Users/sirisuk/Desktop/SKDEV/CS/y4s1/internship/test-app/wala/WALA-start-test/src/main/java/com/ibm/wala/examples/analysis/SimpleThreadEscapeAnalysis.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+2 warnings
+
+> Task :processResources
+> Task :classes
+
+> Task :run
+[-sourceDir, /Users/sirisuk/Desktop/SKDEV/CS/y4s1/internship/test-app/wala/fibo/src, -mainClass, Lcom/sirisuk/Main]
+4885 classes
+1. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Lapple/security/AppleProvider$ProviderService> No superclass found for <Primordial,Lapple/security/AppleProvider$ProviderService> Superclass name Ljava/security/Provider$Service
+2. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Lapple/security/AppleProvider> No superclass found for <Primordial,Lapple/security/AppleProvider> Superclass name Ljava/security/Provider
+3. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Lapple/security/KeychainStore> No superclass found for <Primordial,Lapple/security/KeychainStore> Superclass name Ljava/security/KeyStoreSpi
+4. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/io/FilePermission> No superclass found for <Primordial,Ljava/io/FilePermission> Superclass name Ljava/security/Permission
+5. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/io/FilePermissionCollection> No superclass found for <Primordial,Ljava/io/FilePermissionCollection> Superclass name Ljava/security/PermissionCollection
+6. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/io/SerializablePermission> No superclass found for <Primordial,Ljava/io/SerializablePermission> Superclass name Ljava/security/BasicPermission
+7. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/lang/RuntimePermission> No superclass found for <Primordial,Ljava/lang/RuntimePermission> Superclass name Ljava/security/BasicPermission
+8. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/lang/reflect/ReflectPermission> No superclass found for <Primordial,Ljava/lang/reflect/ReflectPermission> Superclass name Ljava/security/BasicPermission
+9. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/net/FactoryURLClassLoader> No superclass found for <Primordial,Ljava/net/URLClassLoader> Superclass name Ljava/security/SecureClassLoader
+10. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/net/NetPermission> No superclass found for <Primordial,Ljava/net/NetPermission> Superclass name Ljava/security/BasicPermission
+11. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/net/SocketPermission> No superclass found for <Primordial,Ljava/net/SocketPermission> Superclass name Ljava/security/Permission
+12. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/net/SocketPermissionCollection> No superclass found for <Primordial,Ljava/net/SocketPermissionCollection> Superclass name Ljava/security/PermissionCollection
+13. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/net/URLClassLoader> No superclass found for <Primordial,Ljava/net/URLClassLoader> Superclass name Ljava/security/SecureClassLoader
+14. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/net/URLPermission> No superclass found for <Primordial,Ljava/net/URLPermission> Superclass name Ljava/security/Permission
+15. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/nio/file/LinkPermission> No superclass found for <Primordial,Ljava/nio/file/LinkPermission> Superclass name Ljava/security/BasicPermission
+16. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/util/Locale$Cache> No superclass found for <Primordial,Ljava/util/Locale$Cache> Superclass name Lsun/util/locale/LocaleObjectCache
+17. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/util/PropertyPermission> No superclass found for <Primordial,Ljava/util/PropertyPermission> Superclass name Ljava/security/BasicPermission
+18. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/util/PropertyPermissionCollection> No superclass found for <Primordial,Ljava/util/PropertyPermissionCollection> Superclass name Ljava/security/PermissionCollection
+19. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljava/util/ResourceBundle$Control$CandidateListCache> No superclass found for <Primordial,Ljava/util/ResourceBundle$Control$CandidateListCache> Superclass name Lsun/util/locale/LocaleObjectCache
+20. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljavax/crypto/AEADBadTagException> No superclass found for <Primordial,Ljavax/crypto/BadPaddingException> Superclass name Ljava/security/GeneralSecurityException
+21. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljavax/crypto/BadPaddingException> No superclass found for <Primordial,Ljavax/crypto/BadPaddingException> Superclass name Ljava/security/GeneralSecurityException
+22. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljavax/crypto/CryptoAllPermission> No superclass found for <Primordial,Ljavax/crypto/CryptoPermission> Superclass name Ljava/security/Permission
+23. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljavax/crypto/CryptoAllPermissionCollection> No superclass found for <Primordial,Ljavax/crypto/CryptoAllPermissionCollection> Superclass name Ljava/security/PermissionCollection
+24. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljavax/crypto/CryptoPermission> No superclass found for <Primordial,Ljavax/crypto/CryptoPermission> Superclass name Ljava/security/Permission
+25. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljavax/crypto/CryptoPermissionCollection> No superclass found for <Primordial,Ljavax/crypto/CryptoPermissionCollection> Superclass name Ljava/security/PermissionCollection
+26. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljavax/crypto/CryptoPermissions> No superclass found for <Primordial,Ljavax/crypto/CryptoPermissions> Superclass name Ljava/security/PermissionCollection
+27. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljavax/crypto/CryptoPolicyParser$ParsingException> No superclass found for <Primordial,Ljavax/crypto/CryptoPolicyParser$ParsingException> Superclass name Ljava/security/GeneralSecurityException
+28. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljavax/crypto/DecapsulateException> No superclass found for <Primordial,Ljavax/crypto/DecapsulateException> Superclass name Ljava/security/GeneralSecurityException
+29. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljavax/crypto/ExemptionMechanismException> No superclass found for <Primordial,Ljavax/crypto/ExemptionMechanismException> Superclass name Ljava/security/GeneralSecurityException
+30. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljavax/crypto/IllegalBlockSizeException> No superclass found for <Primordial,Ljavax/crypto/IllegalBlockSizeException> Superclass name Ljava/security/GeneralSecurityException
+31. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljavax/crypto/NoSuchPaddingException> No superclass found for <Primordial,Ljavax/crypto/NoSuchPaddingException> Superclass name Ljava/security/GeneralSecurityException
+32. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljavax/crypto/ShortBufferException> No superclass found for <Primordial,Ljavax/crypto/ShortBufferException> Superclass name Ljava/security/GeneralSecurityException
+33. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljavax/net/ssl/SSLPermission> No superclass found for <Primordial,Ljavax/net/ssl/SSLPermission> Superclass name Ljava/security/BasicPermission
+34. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljavax/security/auth/AuthPermission> No superclass found for <Primordial,Ljavax/security/auth/AuthPermission> Superclass name Ljava/security/BasicPermission
+35. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljavax/security/auth/PrivateCredentialPermission> No superclass found for <Primordial,Ljavax/security/auth/PrivateCredentialPermission> Superclass name Ljava/security/Permission
+36. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljavax/security/auth/login/AccountException> No superclass found for <Primordial,Ljavax/security/auth/login/LoginException> Superclass name Ljava/security/GeneralSecurityException
+37. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljavax/security/auth/login/AccountExpiredException> No superclass found for <Primordial,Ljavax/security/auth/login/LoginException> Superclass name Ljava/security/GeneralSecurityException
+38. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljavax/security/auth/login/AccountLockedException> No superclass found for <Primordial,Ljavax/security/auth/login/LoginException> Superclass name Ljava/security/GeneralSecurityException
+39. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljavax/security/auth/login/AccountNotFoundException> No superclass found for <Primordial,Ljavax/security/auth/login/LoginException> Superclass name Ljava/security/GeneralSecurityException
+40. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljavax/security/auth/login/CredentialException> No superclass found for <Primordial,Ljavax/security/auth/login/LoginException> Superclass name Ljava/security/GeneralSecurityException
+41. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljavax/security/auth/login/CredentialExpiredException> No superclass found for <Primordial,Ljavax/security/auth/login/LoginException> Superclass name Ljava/security/GeneralSecurityException
+42. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljavax/security/auth/login/CredentialNotFoundException> No superclass found for <Primordial,Ljavax/security/auth/login/LoginException> Superclass name Ljava/security/GeneralSecurityException
+43. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljavax/security/auth/login/FailedLoginException> No superclass found for <Primordial,Ljavax/security/auth/login/LoginException> Superclass name Ljava/security/GeneralSecurityException
+44. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljavax/security/auth/login/LoginException> No superclass found for <Primordial,Ljavax/security/auth/login/LoginException> Superclass name Ljava/security/GeneralSecurityException
+45. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljdk/internal/jrtfs/JrtFileSystemProvider$JrtFsLoader> No superclass found for <Primordial,Ljava/net/URLClassLoader> Superclass name Ljava/security/SecureClassLoader
+46. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljdk/internal/loader/BuiltinClassLoader> No superclass found for <Primordial,Ljdk/internal/loader/BuiltinClassLoader> Superclass name Ljava/security/SecureClassLoader
+47. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljdk/internal/loader/ClassLoaders$AppClassLoader> No superclass found for <Primordial,Ljdk/internal/loader/BuiltinClassLoader> Superclass name Ljava/security/SecureClassLoader
+48. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljdk/internal/loader/ClassLoaders$BootClassLoader> No superclass found for <Primordial,Ljdk/internal/loader/BuiltinClassLoader> Superclass name Ljava/security/SecureClassLoader
+49. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljdk/internal/loader/ClassLoaders$PlatformClassLoader> No superclass found for <Primordial,Ljdk/internal/loader/BuiltinClassLoader> Superclass name Ljava/security/SecureClassLoader
+50. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljdk/internal/loader/Loader> No superclass found for <Primordial,Ljdk/internal/loader/Loader> Superclass name Ljava/security/SecureClassLoader
+51. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljdk/internal/logger/SimpleConsoleLogger> No superclass found for <Primordial,Ljdk/internal/logger/SimpleConsoleLogger> Superclass name Lsun/util/logging/PlatformLogger$ConfigurableBridge$LoggerConfiguration
+52. [Moderate] class com.ibm.wala.ipa.cha.ClassHierarchy$ClassExclusion : <Primordial,Ljdk/internal/logger/SurrogateLogger> No superclass found for <Primordial,Ljdk/internal/logger/SimpleConsoleLogger> Superclass name Lsun/util/logging/PlatformLogger$ConfigurableBridge$LoggerConfiguration
+53. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljava/security/DomainCombiner
+54. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljava/security/Key
+55. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljava/security/KeyStore$Entry$Attribute
+56. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljava/security/Principal
+57. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljava/security/PrivateKey
+58. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljava/security/PrivilegedAction
+59. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljava/security/PrivilegedExceptionAction
+60. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljava/security/PublicKey
+61. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljava/security/spec/AlgorithmParameterSpec
+62. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Ljava/security/spec/KeySpec
+63. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Lsun/nio/ch/DirectBuffer
+64. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Lsun/nio/ch/Interruptible
+65. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Lsun/util/locale/provider/LocaleServiceProviderPool$LocalizedObjectGetter
+66. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Lsun/util/logging/PlatformLogger$Bridge
+67. [SEVERE] class com.ibm.wala.classLoader.BytecodeClass$ClassNotFoundWarning : Lsun/util/logging/PlatformLogger$ConfigurableBridge
+
+building call graph...
+done
+took 3011ms
+Call graph stats:
+  Nodes: 8005
+  Edges: 39717
+  Methods: 5813
+  Bytecode Bytes: 407794
+
+
+[Incubating] Problems report is available at: file:///Users/sirisuk/Desktop/SKDEV/CS/y4s1/internship/test-app/wala/WALA-start-test/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 3s
+3 actionable tasks: 3 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.5.1/userguide/configuration_cache_enabling.html

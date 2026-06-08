@@ -1,0 +1,12 @@
+> Task :compileJava UP-TO-DATE
+> Task :processResources
+> Task :classes
+
+> Task :run
+spawning process [dot, -Tpdf, -o, /var/folders/7_/6rnw1yrs7p923fzd_64549v00000gn/T/out16964141816459039066.pdf, -v, /var/folders/7_/6rnw1yrs7p923fzd_64549v00000gn/T/out8554226120937607717.dt]
+read 2093 bytes from error stream
+process terminated with exit code 0
+
+BUILD SUCCESSFUL in 1s
+3 actionable tasks: 2 executed, 1 up-to-date
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.5.1/userguide/configuration_cache_enabling.html
