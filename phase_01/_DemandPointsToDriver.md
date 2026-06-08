@@ -328,6 +328,25 @@ POINTS TO RESULT: [SUCCESS,[]]
 ---
 
 
-## Reproducibility
+## Additional
+Update the driver to include this will generate WALA UI show CallGraph and ClassHierarchy.
+```java
+import com.ibm.wala.viz.viewer.CgPanel;
+import com.ibm.wala.viz.viewer.ChaPanel;
+import javax.swing.JFrame;
+import javax.swing.JTabbedPane;
+
+
+    JFrame frame = new JFrame("WALA CG Viewer");
+    JTabbedPane tabs = new JTabbedPane();
+    tabs.add("Call Graph", new CgPanel(chaCG));
+    tabs.add("Class Hierarchy", new ChaPanel(cha));
+    frame.add(tabs);
+    frame.setSize(800, 600);
+    frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    frame.setVisible(true);
+```
+![Photo](phase_01/other/assets/pichaphop/WALA_viewer_example.png)
 
 ---
