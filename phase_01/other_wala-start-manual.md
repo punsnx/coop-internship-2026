@@ -45,27 +45,29 @@
 ## Loading Java Base Library
 
 > **Owner: Bus**
-### Java Compilation Pipeline
 
-Understanding where WALA fits in the Java execution lifecycle:
+When working with WALA (Whole Program Analysis Library), you often need to include and configure the Java base library, which serves as a foundation for standard classes provided by Oracle's JDK. This section explains how to properly load the Java base library into your WALA setup:
 
-```
-AnalysisClass.java
-        │
-        │  javac                    ← compilation (platform-independent)
-        ▼
-AnalysisClass.class                 ← JVM bytecode (stack-based instruction set)
-        │
-        │  ◄── WALA operates here ──►
-        │      reads bytecode as data, builds models
-        │
-        │  JVM (runtime)            ← interpretation + JIT compilation
-        ▼
-  native machine code               ← CPU-specific, executed
-```
+### Understanding the Importance of the Java Base Library
 
-The `.class` file is **bytecode** — a compact, platform-independent instruction set. The JVM interprets or JIT-compiles it to native code at runtime. WALA sits between compilation and execution, reasoning about the bytecode without ever running it.
+The Java base library (`java.base`) contains essential classes and functionalities that are used across many Java programs, such as `java.lang.*`, `java.util.*`, and others. Including this library in your WALA analysis ensures that the standard libraries are available for use in all class files within the scope you define.
 
+### Steps to Load the Java Base Library in WALA
+
+1. **Set Up Your Environment**: Ensure that your environment is correctly configured to include the Java base library. This might involve setting up properties or environment variables to point to the correct directory where the JAR file of `java.base` is located.
+
+2. **Configuration via Properties File**: Use a configuration file (e.g., `wala.properties`) within your WALA project to specify the path to the Java base library. This can be done by setting the property `java_runtime_dir` to the directory where the JAR file is stored. For example:
+### Additional Context on WALA’s Role in the Java Ecosystem
+
+Beyond its role as a static analysis tool, WALA (Whole Program Analysis Library) plays a pivotal part in bridging the gap between compiled bytecode and runtime execution. This section delves into how WALA contributes to the broader Java ecosystem by enabling advanced analyses that are best performed at the bytecode level:
+
+- **Independent of Runtime**: WALA operates independently of JVM runtime, allowing for detailed analysis without executing the code, which is particularly valuable in scenarios where performance or security restrictions prevent full execution.
+
+- **Flexibility and Extensibility**: As a flexible tool, WALA can be extended to analyze various dimensions beyond just bytecode reading and model construction. It might support additional features like type inference, dependency graph generation, or even dynamic analysis based on runtime behavior that is not easily accessible through source code alone.
+
+- **Cross-Cutting Applications**: The insights provided by WALA are not limited to software development but can be used for applications such as software optimization, bug tracking across different versions of a program, and in educational environments where understanding the underlying bytecode structure aids learning outcomes.
+
+By operating at this unique intersection between compilation and runtime execution, WALA significantly enhances the depth and breadth of analyses possible within the Java environment, providing valuable insights that are integral to modern software engineering practices.
 
 ---
 
@@ -73,19 +75,61 @@ The `.class` file is **bytecode** — a compact, platform-independent instructio
 
 > **Owner: Bus**
 
-```bash
-./run_analysis.sh
-```
+0. **Install JDK 21**
+   ```bash
+   brew install oracle-jdk@21 && echo "export JAVA_HOME=/path/to/java_home" >> ~/.bashrc
+   ```
 
-What the script does, step by step:
+1. **Clone and build the project:**
+   ```bash
+   git clone https://github.com/wala/WALA-start.git
+   cd WALA-start
+   export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home
+   ./gradlew compileJava
+   ```
 
-1. **Validates** the compiled target (`fibo/out-class/AnalysisClass.class`) exists
-2. **Builds** a scope file (`scope.txt`) pointing `Primordial → stdlib` and `Application → AnalysisClass.class`
-3. **Builds** `/tmp/wala-stdlib/java.base.jar` from your JDK's `java.base.jmod` (first run only)
-4. **Runs** `SourceDirCallGraph` via Gradle against `fibo/src/`
+2. **Compile the sample target application:**
+   ```bash
+   javac -d target/classes \
+     src/main/java/com/example/*.java
+   ```
 
-Output is printed to terminal — call graph node count, edge count, and timing.
+3. **Build the WALA stdlib cache (one-time setup):**
 
+   Java 9+ no longer ships `rt.jar`; WALA requires a JAR of the standard library. Extract it once from `java.base.jmod`:
+   ```bash
+   mkdir -p /tmp/wala-stdlib/x
+   unzip -q "$JAVA_HOME/jmods/java.base.jmod" -d /tmp/wala-stdlib/x || true
+   "$JAVA_HOME/bin/jar" cf /tmp/wala-stdlib/java.base.jar \
+       -C /tmp/wala-stdlib/x/classes .
+   rm -rf /tmp/wala-stdlib/x
+   ```
+   This only needs to run once. Delete `/tmp/wala-stdlib` to force a rebuild (e.g. after changing JDK).
+
+4. **Set the environment variable for WALA:**
+
+   `src/main/resources/wala.properties` must point to the stdlib cache directory:
+   ```properties
+   java_runtime_dir=/tmp/wala-stdlib
+   ```
+
+5. **Create `scope.txt`** pointing to the compiled target:
+   ```
+   Primordial,Java,stdlib,none
+   Application,Java,binaryDir,/absolute/path/to/buildpath
+   ```
+   Scope file format: `Loader,Language,type,path`
+  - `Primordial` — Java standard library
+  - `Application` — your code
+  - `binaryDir` — directory of `.class` files; use `classFile` for a single file
+
+6. **Run the driver:**
+   ```bash
+   ./gradlew run \
+   # Choose the driver you want to run
+     -PmainClass=com.ibm.wala.examples.drivers.ScopeFileCallGraph \ 
+     --args="driver parameters"
+   ```
 
 ---
 
@@ -104,13 +148,6 @@ Output is printed to terminal — call graph node count, edge count, and timing.
 | `ConstructAllIRs` | Scope file |
 | `CSReachingDefsDriver` | Scope file + class name |
 | `DemandPointsToDriver` | Scope file |
-
-### How to switch driver in `run_analysis.sh`
-
-Uncomment the block for the driver you want and comment out `SourceDirCallGraph`.
-Each block is labelled with `# --- DriverName ---`.
-
-Example — switch to `ScopeFileCallGraph`:
 
 ```bash
 # --- ScopeFileCallGraph ---

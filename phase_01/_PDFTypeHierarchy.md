@@ -2,6 +2,19 @@
 
 ---
 
+## Table of Contents
+
+- [Functionality](#functionality)
+- [Input & Output](#input--output)
+- [Run Instructions](#run-instructions)
+   - [Prerequisites](#prerequisites)
+   - [Steps](#steps)
+   - [Sample Input](#sample-input)
+   - [Expected Output](#expected-output)
+- [Reproducibility](#reproducibility)
+
+---
+
 ## Functionality
 
 `PDFTypeHierarchy` builds a class hierarchy from compiled Java bytecode and renders it as a
@@ -119,3 +132,9 @@ the root of all Java classes. The diagram has exactly two nodes and one edge.
 
 > **Note:** This PDF output is written to a temporary file (e.g. `/tmp/out1228629807.pdf`)
 > and opened automatically. The exact filename changes on every run.
+
+---
+
+## Reproducibility
+
+---

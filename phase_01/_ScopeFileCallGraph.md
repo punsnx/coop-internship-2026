@@ -2,6 +2,22 @@
 
 ---
 
+## Table of Contents
+
+- [Functionality](#functionality)
+- [Input & Output](#input--output)
+- [Run Instructions](#run-instructions)
+    - [Prerequisites](#prerequisites)
+    - [Dependencies](#dependencies-buildgradlekts)
+    - [Steps](#steps)
+    - [Class Name Format](#class-name-format)
+    - [Program Code](#program-code)
+    - [Sample Input](#sample-input)
+    - [Expected Output](#expected-output)
+- [Reproducibility](#reproducibility)
+
+---
+
 ## Functionality
 
 `ScopeFileCallGraph` is a WALA driver that constructs an interprocedural call graph for a Java application by loading pre-compiled bytecode (`.class` files or a binary directory) declared in a scope file. It builds a class hierarchy over the declared scope, selects entrypoints from either a `main()` method or all public methods of a given class, then runs a 0-1-Container-CFA call graph algorithm. The driver prints call graph statistics and, for every application-layer method, lists each callee tagged as `[app]` (your code) or `[lib]` (standard library / framework).
@@ -343,3 +359,9 @@ Call graph stats:
   --> [app] com.sirisuk.AnalysisClass.down(I)J
 
 ```
+
+---
+
+## Reproducibility
+
+---
