@@ -221,8 +221,146 @@ The ECJ pin prevents a `NoSuchMethodError` caused by Gradle upgrading ECJ to an 
 
 ## Java Compilation Pipeline
 
-> **Owner: Stamp**
+### 1. Overview — Java Execution Stack
 
+```
+.java source
+    │  javac (compiler)           ← platform-independent compilation
+    ▼
+.class (JVM bytecode)             ← stack-based instruction set; portable
+    │
+    │  ◄── WALA operates here ──►  reads bytecode as data, never executes it
+    │
+    │  JVM (interpreter + JIT)    ← Just-In-Time compilation at runtime
+    ▼
+native machine code               ← CPU-specific; actually executed
+```
+
+**Compiler principle:** `javac` performs lexing → parsing → type-checking → code generation, producing platform-independent bytecode. The JVM then applies JIT to hot code paths at runtime. WALA intercepts between these two phases — it reasons statically about what the bytecode *would* do without running it.
+
+---
+
+### 2. Two Analysis Paths in WALA
+
+WALA supports two entry points depending on whether you have source or compiled bytecode. Both converge at SSA IR.
+
+```
+Source-based (SourceDirCallGraph):        Bytecode-based (ScopeFileCallGraph):
+  .java                                     .class
+    │  ECJ (compiler, in-memory)              │  Shrike bytecode reader
+    ▼                                         ▼
+  CAst IR  (tree, source path only)         ClassHierarchy  ← no CAst step
+    │                                         │
+    ▼                                         ▼
+  ClassHierarchy                           SSA IR (per method, on demand)
+    │                                         │
+    ▼                                         ▼
+  SSA IR → CallGraph → Analysis           CallGraph → Analysis
+```
+
+---
+
+### 3. Intermediate Representations
+
+Two distinct IRs exist at different stages — commonly confused but separate artifacts.
+
+| | CAst IR | SSA IR |
+|---|---|---|
+| **Full name** | Common Abstract Syntax Tree | Static Single Assignment form |
+| **Shape** | Nested tree (CAstNode hierarchy) | Flat basic blocks + 3-address instructions |
+| **Scope** | Whole-program | Per-method (built on demand) |
+| **When built** | During ECJ/Rhino parsing | `cache.getIR(method, context)` |
+| **Path** | Source-based only | Both source and bytecode paths |
+
+**SSA rule:** every variable is assigned exactly once; each re-assignment gets a new version number. At control-flow join points, a **φ (phi) function** merges versions.
+
+```java
+// Original
+x = 1;
+x = x + 2;
+if (...) x = 5;
+
+// SSA form
+x₁ = 1
+x₂ = x₁ + 2
+x₃ = 5
+x₄ = φ(x₂, x₃)   ← x₄ is x₂ or x₃ depending on which branch ran
+```
+
+Phi nodes make dataflow (e.g. reaching definitions, points-to) simple graph traversals instead of iterative fixpoints.
+
+---
+
+### 4. ClassHierarchy — Between CAst IR and SSA IR
+
+CHA is **not** an IR — it is a type index. It knows that classes and methods *exist* with their signatures, but contains **no method bodies**.
+
+```
+IClassHierarchy {
+  IClass[Primordial, Ljava/lang/Object]   ← root of everything
+    └── IClass[Application, Lcom/sirisuk/AnalysisClass]
+          methods: [up(I)J, down(I)J, run()V]   // signatures only — no bodies
+}
+```
+
+SSA IR is built separately, lazily, per method from bytecode via `cache.getIR(method, context)`.
+
+---
+
+### 5. rt.jar → .jmod (Java 8 → Java 9+)
+
+WALA must resolve every type in your code — including `java.lang.Object`, the root of all class hierarchies. Without the standard library, CHA construction fails immediately:
+
+```
+ClassHierarchyException: failed to load root <Primordial,Ljava/lang/Object>
+```
+
+| Era | Format | Layout |
+|-----|--------|--------|
+| Java ≤ 8 | `rt.jar` (~60 MB monolithic JAR) | `jre/lib/rt.jar` — entire stdlib in one file |
+| Java 9+ | `.jmod` files (~70 named modules) | `jmods/java.base.jmod`, `java.sql.jmod`, … |
+
+**Why Java moved:** `rt.jar` had no encapsulation (internal `sun.*` APIs were public), caused slow startup (full scan every time), and couldn't be updated incrementally. **Project Jigsaw** (Java 9) split it into modules with explicit `exports`/`requires` declarations.
+
+**Why WALA can't read `.jmod` directly:** `WalaProperties.getJarsInDirectory()` scans for `*.jar` only, and `new JarFile()` rejects `.jmod`'s non-standard 4-byte magic header.
+
+**Workaround — extraction shim:**
+```bash
+# Unzip the .jmod (it's a ZIP with a 4-byte custom header — || true ignores header warning)
+unzip -q "$JAVA_HOME/jmods/java.base.jmod" -d /tmp/wala-stdlib/x || true
+# Repack classes/ as a standard JAR
+jar cf /tmp/wala-stdlib/java.base.jar -C /tmp/wala-stdlib/x/classes .
+```
+
+The content is identical to what `rt.jar` contained for the base module — only the container format changed. Run once; delete `/tmp/wala-stdlib` to force a rebuild.
+
+---
+
+### 6. WALA's Full Pipeline (Summary)
+
+```
+.java / .class
+    │ ECJ (source) or Shrike (bytecode)
+    ▼
+CAst IR (source path only) / direct bytecode (bytecode path)
+    │
+    ▼
+AnalysisScope      ← declares what to load: Primordial (stdlib) + Application (your code)
+    │
+    ▼
+ClassHierarchy     ← type graph: IClass + IMethod signatures, no bodies
+    │ cache.getIR() — lazy, per method
+    ▼
+SSA IR             ← basic blocks, vN value numbers, φ nodes
+    │ call graph builder (0-CFA / 0-1-CFA / n-CFA)
+    ▼
+CallGraph          ← CGNode[method + context] with call edges; each node holds its SSA IR
+    │ dataflow engine
+    ▼
+Analysis result    ← reaching defs, points-to sets, security vulnerabilities, etc.
+```
+
+Each step enriches the model: CHA knows **what exists**, IR knows **what happens inside**, CallGraph knows **who calls whom**, and analysis layers answer specific security or correctness questions on top of all three.
 
 ---
 
