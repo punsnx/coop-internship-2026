@@ -1,7 +1,7 @@
 # WALA-start Developer Manual
 
 
-> This manual documents everything needed to understand, set up, and run the WALA-start example programs.
+ This manual documents everything needed to understand, set up, and run the WALA-start example programs.
 
 ---
 
@@ -24,60 +24,83 @@
 
 ---
 
-## Important WALA-start Project Structure
-> **Owner: Stamp**
-
-
+## Project Structure
 
 ```
-src/main/java/com/ibm/wala/examples/
-│
-├── /analysis                — Analysis technique algorithms (used in drivers)
-│   ├── /dataflow
-│   │   ├── ContextInsensitiveReachingDefs
-│   │   ├── ContextSensitiveReachingDefs
-│   │   └── IntraprocReachingDefs
-│   └── SimpleThreadEscapeAnalysis
-│
-├── /analysisscope           — Examples of how to construct an analysis scope (2 ways)
-│   └── AnalysisScopeExample
-│
-├── /drivers                 — Code examples to run input and get output
-│   ├── BoundedJSCallGraphDriver
-│   ├── ConstructAllIRs
-│   ├── CSReachingDefsDriver
-│   ├── DemandPointsToDriver
-│   ├── FieldBasedJSCallGraphDriver
-│   ├── JSCallGraphDriver
-│   ├── PDFTypeHierarchy
-│   ├── PrintTypeHierarchy
-│   ├── ScopeFileCallGraph
-│   └── SourceDirCallGraph
-│
-└── /util                    — Utility classes with helper methods for drivers
-    └── ExampleUtil          — Adds default exclusions to analysis scope
-                               (prevents scope from becoming too large or over-approximated)
-
-build.gradle.kts             — Gradle build configuration and variables
+WALA-start/
+├── build.gradle.kts          ← Gradle build config
+├── settings.gradle.kts       ← Gradle project name
+├── gradlew / gradlew.bat     ← Gradle wrapper (no install needed)
+├── run_analysis.sh           ← main entry point: builds stdlib cache + runs a driver
+├── scope.txt                 ← auto-generated WALA scope file
+├── src/
+│   └── main/
+│       ├── java/com/ibm/wala/examples/
+│       │   ├── drivers/          ← runnable analysis entry points
+│       │   ├── analysis/         ← supporting analysis implementations
+│       │   ├── analysisscope/    ← AnalysisScope setup example
+│       │   └── util/             ← shared helpers
+│       └── resources/
+│           ├── wala.properties   ← WALA config (stdlib path, output dir)
+│           ├── Exclusions.txt    ← class patterns WALA should skip
+│           └── test-files/
+│               └── fibo.js       ← sample JS target
+└── out/                          ← generated output (PDF, dot, log)
 ```
 
 ---
 
 ## Drivers Reference
 
-> **Owner: Stamp**
+### drivers/ — Java Analysis
+
+| File | Input | What it does |
+|------|-------|--------------|
+| `ScopeFileCallGraph.java` | scope file + `-mainClass` | Call graph from `.class` bytecode via scope file |
+| `SourceDirCallGraph.java` | `-sourceDir` + `-mainClass` | Call graph from `.java` source — uses ECJ in-memory |
+| `SourceDirCallGraphJavac.java` | `-sourceDir` + `-mainClass` | Same as above but uses `javac` instead of ECJ |
+| `PrintTypeHierarchy.java` | classpath | Prints full class hierarchy tree to terminal |
+| `PDFTypeHierarchy.java` | `-classpath` | Renders class hierarchy as a PDF graph diagram |
+| `ConstructAllIRs.java` | scope file | Builds SSA IR for every method — validates scope is correct |
+| `CSReachingDefsDriver.java` | scope file + class name | Context-sensitive reaching definitions dataflow |
+| `DemandPointsToDriver.java` | scope file | Demand-driven points-to analysis — what each pointer may reference |
+
+### analysis/ — Supporting Implementations
+
+| File | What it does |
+|------|--------------|
+| `SimpleThreadEscapeAnalysis.java` | Detects objects that escape their creating thread |
+| `dataflow/ContextInsensitiveReachingDefs.java` | Intraprocedural reaching defs — no call context |
+| `dataflow/ContextSensitiveReachingDefs.java` | Interprocedural reaching defs with call context |
+| `dataflow/IntraprocReachingDefs.java` | Basic intraprocedural reaching defs (simplest form) |
+
+### analysisscope/ and util/
+
+| File | What it does |
+|------|--------------|
+| `analysisscope/AnalysisScopeExample.java` | Example: how to build an `AnalysisScope` programmatically |
+| `util/ExampleUtil.java` | Shared helpers — adds default class exclusions, builds scope from classpath |
+
+### Resources and Root Configs
+
+| File | Purpose |
+|------|---------|
+| `src/main/resources/wala.properties` | `java_runtime_dir` (stdlib JAR dir) and `output_dir` for PDF drivers |
+| `src/main/resources/Exclusions.txt` | Regex patterns for JDK internals / GUI libs WALA should skip |
+| `build.gradle.kts` | JDK 21 toolchain, WALA 1.7.2 deps, ECJ 3.36.0 pin |
+| `scope.txt` | Auto-generated: `Primordial,Java,stdlib,none` + `Application` entry |
 
 ---
 
 ## Prerequisites
 
-> **Owner: Stamp**
+> **Owner: Prawit**
 
 ---
 
 ## Loading Java Base Library
 
-> **Owner: Bus**
+> **Owner: Napongtorn**
 
 When working with WALA (Whole Program Analysis Library), you often need to include and configure the Java base library, which serves as a foundation for standard classes provided by Oracle's JDK. This section explains how to properly load the Java base library into your WALA setup:
 
@@ -106,7 +129,7 @@ By operating at this unique intersection between compilation and runtime executi
 
 ## How to Run
 
-> **Owner: Bus**
+> **Owner: Napongtorn**
 
 0. **Install JDK 21**
    ```bash
@@ -168,7 +191,7 @@ By operating at this unique intersection between compilation and runtime executi
 
 ## Running Parameters and Switching
 
-> **Owner: Bus**
+> **Owner: Napongtorn**
 
 ### Parameters for each drivers
 
@@ -193,7 +216,7 @@ By operating at this unique intersection between compilation and runtime executi
 
 ## Scope File Format
 
-> **Owner: Bus**
+> **Owner: Napongtorn**
 
 `scope.txt` is a plain text file with one entry per line:
 
@@ -219,7 +242,7 @@ Application,Java,classFile,/path/to/AnalysisClass.class
 
 ## Configuration Files
 
-> **Owner: Bus**
+> **Owner: Napongtorn**
 
 ### `build.gradle.kts` — notable settings
 
@@ -240,58 +263,180 @@ The ECJ pin prevents a `NoSuchMethodError` caused by Gradle upgrading ECJ to an 
 
 ## Further Understanding: Analyzing a Different Target
 
-> **Owner: Stamp**
->
-
+> **Owner: Pichaphop**
 
 
 ---
 
-## Key WALA-start Concepts
+## Key WALA Concepts
 
-> **Owner: Stamp**
+> **Owner: Pichaphop**
 
-Most driver examples are designed to create a Call Graph. Other examples focus on generating foundational structures, such as the Intermediate Representation (IR) in Static Single Assignment (SSA) form, or the Class Hierarchy (the relationships between classes). Additionally, some examples go further and implement complete static analyzers.
 
-### The WALA Analysis Pipeline
-
-```
-AnalysisScope → ClassLoader → ClassHierarchy → AnalysisOptions → CallGraphBuilder → CallGraph → Analysis
-```
-
-| Step            | Description                                                                                                                                                 |
-|-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| AnalysisScope   | Defines the domain and boundaries of your analysis                                                                                                          |
-| ClassLoader     | Loads the program's classes based on the defined scope                                                                                                      |
-| ClassHierarchy  | Builds the structural relationships between the loaded classes                                                                                              |
-| AnalysisOptions | Configures specific options for the analysis, such as defining entry points or setting initial values                                                       |
-| CallGraphBuilder| Constructs the call graph. WALA allows you to choose from various algorithms depending on the required precision (e.g., CHA, RTA, 0-CFA, 0-1-CFA, or n-CFA)|
-| CallGraph       | The resulting graphical structure representing the method calls within the program                                                                          |
-| Analysis        | The final stage where specific, in-depth analyses are executed using the generated structures (e.g., Dataflow Analysis, Pointer Analysis)                   |
 ---
 
 ## Java Compilation Pipeline
 
-> **Owner: Stamp**
+### 1. Overview — Java Execution Stack
 
+```
+.java source
+    │  javac (compiler)           ← platform-independent compilation
+    ▼
+.class (JVM bytecode)             ← stack-based instruction set; portable
+    │
+    │  ◄── WALA operates here ──►  reads bytecode as data, never executes it
+    │
+    │  JVM (interpreter + JIT)    ← Just-In-Time compilation at runtime
+    ▼
+native machine code               ← CPU-specific; actually executed
+```
+
+**Compiler principle:** `javac` performs lexing → parsing → type-checking → code generation, producing platform-independent bytecode. The JVM then applies JIT to hot code paths at runtime. WALA intercepts between these two phases — it reasons statically about what the bytecode *would* do without running it.
+
+---
+
+### 2. Two Analysis Paths in WALA
+
+WALA supports two entry points depending on whether you have source or compiled bytecode. Both converge at SSA IR.
+
+```
+Source-based (SourceDirCallGraph):        Bytecode-based (ScopeFileCallGraph):
+  .java                                     .class
+    │  ECJ (compiler, in-memory)              │  Shrike bytecode reader
+    ▼                                         ▼
+  CAst IR  (tree, source path only)         ClassHierarchy  ← no CAst step
+    │                                         │
+    ▼                                         ▼
+  ClassHierarchy                           SSA IR (per method, on demand)
+    │                                         │
+    ▼                                         ▼
+  SSA IR → CallGraph → Analysis           CallGraph → Analysis
+```
+
+---
+
+### 3. Intermediate Representations
+
+Two distinct IRs exist at different stages — commonly confused but separate artifacts.
+
+| | CAst IR | SSA IR |
+|---|---|---|
+| **Full name** | Common Abstract Syntax Tree | Static Single Assignment form |
+| **Shape** | Nested tree (CAstNode hierarchy) | Flat basic blocks + 3-address instructions |
+| **Scope** | Whole-program | Per-method (built on demand) |
+| **When built** | During ECJ/Rhino parsing | `cache.getIR(method, context)` |
+| **Path** | Source-based only | Both source and bytecode paths |
+
+**SSA rule:** every variable is assigned exactly once; each re-assignment gets a new version number. At control-flow join points, a **φ (phi) function** merges versions.
+
+```java
+// Original
+x = 1;
+x = x + 2;
+if (...) x = 5;
+
+// SSA form
+x₁ = 1
+x₂ = x₁ + 2
+x₃ = 5
+x₄ = φ(x₂, x₃)   ← x₄ is x₂ or x₃ depending on which branch ran
+```
+
+Phi nodes make dataflow (e.g. reaching definitions, points-to) simple graph traversals instead of iterative fixpoints.
+
+---
+
+### 4. ClassHierarchy — Between CAst IR and SSA IR
+
+CHA is **not** an IR — it is a type index. It knows that classes and methods *exist* with their signatures, but contains **no method bodies**.
+
+```
+IClassHierarchy {
+  IClass[Primordial, Ljava/lang/Object]   ← root of everything
+    └── IClass[Application, Lcom/sirisuk/AnalysisClass]
+          methods: [up(I)J, down(I)J, run()V]   // signatures only — no bodies
+}
+```
+
+SSA IR is built separately, lazily, per method from bytecode via `cache.getIR(method, context)`.
+
+---
+
+### 5. rt.jar → .jmod (Java 8 → Java 9+)
+
+WALA must resolve every type in your code — including `java.lang.Object`, the root of all class hierarchies. Without the standard library, CHA construction fails immediately:
+
+```
+ClassHierarchyException: failed to load root <Primordial,Ljava/lang/Object>
+```
+
+| Era | Format | Layout |
+|-----|--------|--------|
+| Java ≤ 8 | `rt.jar` (~60 MB monolithic JAR) | `jre/lib/rt.jar` — entire stdlib in one file |
+| Java 9+ | `.jmod` files (~70 named modules) | `jmods/java.base.jmod`, `java.sql.jmod`, … |
+
+**Why Java moved:** `rt.jar` had no encapsulation (internal `sun.*` APIs were public), caused slow startup (full scan every time), and couldn't be updated incrementally. **Project Jigsaw** (Java 9) split it into modules with explicit `exports`/`requires` declarations.
+
+**Why WALA can't read `.jmod` directly:** `WalaProperties.getJarsInDirectory()` scans for `*.jar` only, and `new JarFile()` rejects `.jmod`'s non-standard 4-byte magic header.
+
+**Workaround — extraction shim:**
+```bash
+# Unzip the .jmod (it's a ZIP with a 4-byte custom header — || true ignores header warning)
+unzip -q "$JAVA_HOME/jmods/java.base.jmod" -d /tmp/wala-stdlib/x || true
+# Repack classes/ as a standard JAR
+jar cf /tmp/wala-stdlib/java.base.jar -C /tmp/wala-stdlib/x/classes .
+```
+
+The content is identical to what `rt.jar` contained for the base module — only the container format changed. Run once; delete `/tmp/wala-stdlib` to force a rebuild.
+
+---
+
+### 6. WALA's Full Pipeline (Summary)
+
+```
+.java / .class
+    │ ECJ (source) or Shrike (bytecode)
+    ▼
+CAst IR (source path only) / direct bytecode (bytecode path)
+    │
+    ▼
+AnalysisScope      ← declares what to load: Primordial (stdlib) + Application (your code)
+    │
+    ▼
+ClassHierarchy     ← type graph: IClass + IMethod signatures, no bodies
+    │ cache.getIR() — lazy, per method
+    ▼
+SSA IR             ← basic blocks, vN value numbers, φ nodes
+    │ call graph builder (0-CFA / 0-1-CFA / n-CFA)
+    ▼
+CallGraph          ← CGNode[method + context] with call edges; each node holds its SSA IR
+    │ dataflow engine
+    ▼
+Analysis result    ← reaching defs, points-to sets, security vulnerabilities, etc.
+```
+
+Each step enriches the model: CHA knows **what exists**, IR knows **what happens inside**, CallGraph knows **who calls whom**, and analysis layers answer specific security or correctness questions on top of all three.
 
 ---
 
 ## How It All Works — Deep Dive
 
-> **Owner: Stamp**
+> **Owner: Pichaphop**
 
 
 ---
 
 ## Java rt Deprecated (replace with jmods)
 
-> **Owner: Stamp**
+> **Owner: Pichaphop**
 
 
 ---
 
 ## Our Troubleshooting
+
+> **Owner: Prawit**
 
 ### Setup & Environment
 
