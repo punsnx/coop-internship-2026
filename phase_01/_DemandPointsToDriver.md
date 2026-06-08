@@ -327,7 +327,40 @@ POINTS TO RESULT: [SUCCESS,[]]
 ```
 ---
 
+## Reproducibility
 
 ## Reproducibility
+
+### Result
+⚠️ PARTIAL PASS
+
+### Observations
+
+I followed instructions using the same fibo sample input (`Main.java` and `AnalysisClass.java`). The build completed successfully with no errors, but produced no output — the expected points-to results did not appear.
+
+Two commands were attempted:
+
+```bash
+# Using relative path
+./gradlew run \
+  -PmainClass=com.ibm.wala.examples.drivers.DemandPointsToDriver \
+  --args="targets/classes"
+
+# Using absolute path
+./gradlew run \
+  -PmainClass=com.ibm.wala.examples.drivers.DemandPointsToDriver \
+  --args="/Users/prawit/CSKU/WALA-start/targets/classes"
+```
+
+Both resulted in `BUILD SUCCESSFUL` with no printed output.
+
+### Difference from Reference
+
+| Item | Reference  | My Run |
+|------|-------------------|--------|
+| Build result | ✅ SUCCESS | ✅ SUCCESS |
+| Points-to results printed | ✅ Present | ❌ No output |
+
+The driver ran without crashing, but the expected points-to result lines (`invokestatic ... POINTS TO RESULT: [SUCCESS,[]]`) did not appear. The cause is unclear, it may be related to how the CHA call graph loads Application classes without a full stdlib setup, or a difference in the local environment. Further investigation is needed.
 
 ---

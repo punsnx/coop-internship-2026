@@ -434,4 +434,39 @@ METHOD: com.sirisuk.AnalysisClass.down()
 
 ## Reproducibility
 
+### Result
+⚠️ PARTIAL PASS
+
+### Observations
+
+I followed instructions with two corrections:
+
+1. **Source directory path** — the `-sourceDir` argument placeholder `directory/path` was replaced with the actual path to the fibo source files: `/Users/prawit/CSKU/WALA-start/targets/src`
+2. **ECJ version conflict** — before the driver could run, a `NoSuchMethodError: Scanner.getNextToken()` error appeared. This required pinning ECJ to `3.36.0` in `build.gradle.kts`, which is not mentioned in instructions:
+   ```kotlin
+   configurations.all {
+     resolutionStrategy { force("org.eclipse.jdt:ecj:3.36.0") }
+   }
+   ```
+   After applying `./gradlew spotlessApply` to fix the formatter, the build succeeded.
+
+The driver ran successfully and produced call graph statistics. However, the `===== CALL GRAPH =====` section shown in expected output did not appear. The `printCallGraph` method is present in his version but not in the cloned repository yet.
+
+### Difference from Reference
+
+| Item | Reference | My Run |
+|------|-------------------|--------|
+| Build result | ✅ SUCCESS | ✅ SUCCESS |
+| `building call graph...done` | ✅ | ✅ |
+| Classes loaded | 6401 | 7500 |
+| Nodes | 28972 | 28880 |
+| Edges | 2181664 | 1732737 |
+| Methods | 13333 | 14071 |
+| Bytecode Bytes | 841902 | 877352 |
+| Time | 163760ms | 153765ms |
+| `===== CALL GRAPH =====` printed | ✅ Present | ❌ Not printed |
+| ECJ pin required | Not mentioned | ✅ Required |
+
+The call graph statistics differ across machines as expected. The main issues were the missing ECJ pin (undocumented prerequisite) and the `printCallGraph` output not being in the shared repository yet.
+
 ---

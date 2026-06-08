@@ -236,4 +236,30 @@ java_runtime_dir=/tmp/wala-stdlib
 
 ## Reproducibility
 
+## Reproducibility
+
+### Result
+✅ PASS
+
+### Observations
+
+I followed instructions using the fibo sample input (`Main.java` and `AnalysisClass.java`). The driver ran successfully and produced the expected type hierarchy output.
+
+```bash
+./gradlew run \
+  -PmainClass=com.ibm.wala.examples.drivers.PrintTypeHierarchy \
+  --args="targets/classes"
+```
+
+### Difference from Reference
+
+| Item | Reference | My Run |
+|------|----------------|--------|
+| Build result | ✅ SUCCESS | ✅ SUCCESS |
+| Primordial classes printed | ✅ | ✅ |
+| Application classes printed | ✅ | ✅ |
+| Application class names | `LAnalysisClass` | `Lcom/sirisuk/AnalysisClass`, `Lcom/sirisuk/Main` |
+
+The output differs only because different sample inputs were used. Reference uses a class in the default package (`LAnalysisClass`), while my run uses the fibo classes under the `com.sirisuk` package, which also includes `Main`. The driver behavior is identical and both produce a full type hierarchy with application classes listed at the end.
+
 ---
