@@ -6,7 +6,7 @@
 
 | Dependencies | Version |
 |--------------|---------|
-| JDK          | 25      |
+| JDK          | 25.0.3  |
 | Gradle       | latest  |
 | graphviz     | latest  |
 
@@ -14,10 +14,11 @@
 
 ## Program Testing 
 
-### Setup Steps
+### Setup Steps (MacOS)
+
 0. **Install JDK 25**
    ```bash
-   brew install oracle-jdk@25 && echo "export JAVA_HOME=/path/to/java_home" >> ~/.bashrc
+   brew install oracle-jdk@25
    ```
 
 1. **Clone and build the project:**
