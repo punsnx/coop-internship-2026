@@ -24,9 +24,42 @@
 
 ---
 
-## Project Structure
-
+## Important WALA-start Project Structure
 > **Owner: Stamp**
+
+
+
+```
+src/main/java/com/ibm/wala/examples/
+│
+├── /analysis                — Analysis technique algorithms (used in drivers)
+│   ├── /dataflow
+│   │   ├── ContextInsensitiveReachingDefs
+│   │   ├── ContextSensitiveReachingDefs
+│   │   └── IntraprocReachingDefs
+│   └── SimpleThreadEscapeAnalysis
+│
+├── /analysisscope           — Examples of how to construct an analysis scope (2 ways)
+│   └── AnalysisScopeExample
+│
+├── /drivers                 — Code examples to run input and get output
+│   ├── BoundedJSCallGraphDriver
+│   ├── ConstructAllIRs
+│   ├── CSReachingDefsDriver
+│   ├── DemandPointsToDriver
+│   ├── FieldBasedJSCallGraphDriver
+│   ├── JSCallGraphDriver
+│   ├── PDFTypeHierarchy
+│   ├── PrintTypeHierarchy
+│   ├── ScopeFileCallGraph
+│   └── SourceDirCallGraph
+│
+└── /util                    — Utility classes with helper methods for drivers
+    └── ExampleUtil          — Adds default exclusions to analysis scope
+                               (prevents scope from becoming too large or over-approximated)
+
+build.gradle.kts             — Gradle build configuration and variables
+```
 
 ---
 
@@ -208,15 +241,33 @@ The ECJ pin prevents a `NoSuchMethodError` caused by Gradle upgrading ECJ to an 
 ## Further Understanding: Analyzing a Different Target
 
 > **Owner: Stamp**
+>
+
 
 
 ---
 
-## Key WALA Concepts
+## Key WALA-start Concepts
 
 > **Owner: Stamp**
 
+Most driver examples are designed to create a Call Graph. Other examples focus on generating foundational structures, such as the Intermediate Representation (IR) in Static Single Assignment (SSA) form, or the Class Hierarchy (the relationships between classes). Additionally, some examples go further and implement complete static analyzers.
 
+### The WALA Analysis Pipeline
+
+```
+AnalysisScope → ClassLoader → ClassHierarchy → AnalysisOptions → CallGraphBuilder → CallGraph → Analysis
+```
+
+| Step            | Description                                                                                                                                                 |
+|-----------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| AnalysisScope   | Defines the domain and boundaries of your analysis                                                                                                          |
+| ClassLoader     | Loads the program's classes based on the defined scope                                                                                                      |
+| ClassHierarchy  | Builds the structural relationships between the loaded classes                                                                                              |
+| AnalysisOptions | Configures specific options for the analysis, such as defining entry points or setting initial values                                                       |
+| CallGraphBuilder| Constructs the call graph. WALA allows you to choose from various algorithms depending on the required precision (e.g., CHA, RTA, 0-CFA, 0-1-CFA, or n-CFA)|
+| CallGraph       | The resulting graphical structure representing the method calls within the program                                                                          |
+| Analysis        | The final stage where specific, in-depth analyses are executed using the generated structures (e.g., Dataflow Analysis, Pointer Analysis)                   |
 ---
 
 ## Java Compilation Pipeline
