@@ -90,7 +90,7 @@
      -PmainClass=com.ibm.wala.examples.drivers.DemandPointsToDriver \
      --args="target/classes"
    ```
-      **NOTE:** For full automates steps 3–6 script: (run it at WALA-start project root directory)
+      **NOTE:** For full automates steps 3–5 script: (run it at WALA-start project root directory)
    
    > **test.sh** 
    > ```bash
