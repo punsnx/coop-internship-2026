@@ -86,13 +86,33 @@ Note: Recompile with -Xlint:unchecked for details.
 
 building call graph...
 done
-took 3011ms
+took 3082ms
 Call graph stats:
   Nodes: 8005
   Edges: 39717
   Methods: 5813
   Bytecode Bytes: 407794
 
+
+===== CALL GRAPH =====
+
+METHOD: com.sirisuk.Main.main()
+  --> calls: com.sirisuk.AnalysisClass.run()
+
+METHOD: com.sirisuk.AnalysisClass.run()
+  --> calls: com.sirisuk.AnalysisClass.up()
+  --> calls: com.sirisuk.AnalysisClass.down()
+  --> calls: com.sirisuk.AnalysisClass.up()
+
+METHOD: com.sirisuk.AnalysisClass.<clinit>()
+
+METHOD: com.sirisuk.AnalysisClass.up()
+
+METHOD: com.sirisuk.AnalysisClass.down()
+  --> calls: com.sirisuk.AnalysisClass.down()
+  --> calls: com.sirisuk.AnalysisClass.down()
+
+===== END =====
 
 [Incubating] Problems report is available at: file:///Users/sirisuk/Desktop/SKDEV/CS/y4s1/internship/test-app/wala/WALA-start-test/build/reports/problems/problems-report.html
 
