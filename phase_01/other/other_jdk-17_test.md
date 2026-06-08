@@ -1,4 +1,4 @@
-# JDK 25 Testing
+# JDK 17 Testing
 
 ---
 
@@ -6,32 +6,36 @@
 
 | Dependencies | Version |
 |--------------|---------|
-| JDK          | 25      |
+| JDK          | 17.0.19 |
 | Gradle       | latest  |
 | graphviz     | latest  |
 
 ---
 
-## Program Testing 
+## Program Testing
 
-### Setup Steps
+### Setup Steps (MacOS)
+
 0. **Install JDK 17**
    ```bash
-   brew install oracle-jdk@17 && echo "export JAVA_HOME=/path/to/java_home" >> ~/.bashrc
+   brew install --cask temurin@17
    ```
 
 1. **Clone and build the project:**
    ```bash
    git clone https://github.com/wala/WALA-start.git
    cd WALA-start
-   export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-25.jdk/Contents/Home
-   ./gradlew compileJava
+   export JAVA_HOME=/Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home
+   sed -i '' 's/JavaLanguageVersion.of([0-9]*)/JavaLanguageVersion.of(17)/' build.gradle.kts
+   ./gradlew --stop && ./gradlew build
    ```
 
 2. **Compile the sample target application:**
    ```bash
-   javac -d target/classes \
-     src/main/java/com/example/*.java
+   mkdir -p targets/classes
+   javac -d targets/classes \
+     targets/classes/Main.java \
+     targets/classes/AnalysisClass.java
    ```
 
 3. **Build the WALA stdlib cache (one-time setup):**
@@ -59,9 +63,9 @@
    Application,Java,binaryDir,/absolute/path/to/buildpath
    ```
    Scope file format: `Loader,Language,type,path`
-    - `Primordial` — Java standard library
-    - `Application` — your code
-    - `binaryDir` — directory of `.class` files; use `classFile` for a single file
+   - `Primordial` — Java standard library
+   - `Application` — your code
+   - `binaryDir` — directory of `.class` files; use `classFile` for a single file
 ```bash
 echo Hello World
 ```
@@ -74,7 +78,7 @@ echo Hello World
   > 
   >  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
   > 
-  >  JAVA_HOME="/Library/Java/JavaVirtualMachines/jdk-25.jdk/Contents/Home"
+  >  JAVA_HOME="/Library/Java/JavaVirtualMachines/<your-jdk>/Contents/Home"
   >  JAVA_VERSION=$("$JAVA_HOME/bin/java" --version | awk 'NR==1{split($2,a,"."); print a[1]}')
   >  sed -i '' "s/JavaLanguageVersion\.of(\([0-9]*\.*\)*)/JavaLanguageVersion.of($JAVA_VERSION)/" "$SCRIPT_DIR/build.gradle.kts"
   >  echo "=== build.gradle.kts toolchain set to Java $JAVA_VERSION ==="
@@ -119,9 +123,9 @@ echo Hello World
 package com.sirisuk;
 
 public class Main {
-    public static void main(String[] args) {
-        AnalysisClass.run();
-    }
+   public static void main(String[] args) {
+      AnalysisClass.run();
+   }
 }
 ```
 
@@ -131,33 +135,33 @@ package com.sirisuk;
 
 public class AnalysisClass {
 
-    public static long up(int n) {
-        if (n <= 1) return n;
-        long[] dp = new long[n + 1];
-        dp[0] = 0; dp[1] = 1;
-        for (int i = 2; i <= n; i++) dp[i] = dp[i - 1] + dp[i - 2];
-        return dp[n];
-    }
+   public static long up(int n) {
+      if (n <= 1) return n;
+      long[] dp = new long[n + 1];
+      dp[0] = 0; dp[1] = 1;
+      for (int i = 2; i <= n; i++) dp[i] = dp[i - 1] + dp[i - 2];
+      return dp[n];
+   }
 
-    private static long[] memo = new long[100];
+   private static long[] memo = new long[100];
 
-    public static long down(int n) {
-        if (n <= 1) return n;
-        if (memo[n] != 0) return memo[n];
-        memo[n] = down(n - 1) + down(n - 2);
-        return memo[n];
-    }
+   public static long down(int n) {
+      if (n <= 1) return n;
+      if (memo[n] != 0) return memo[n];
+      memo[n] = down(n - 1) + down(n - 2);
+      return memo[n];
+   }
 
-    public static void run() {
-        int n = 10;
-        System.out.println("Fibonacci DP Demo (n = " + n + ")");
-        System.out.println("Bottom-up : " + up(n));
-        System.out.println("Top-down  : " + down(n));
-        System.out.println("\nSequence (0.." + n + "):");
-        for (int i = 0; i <= n; i++) {
-            System.out.print(up(i) + (i < n ? " " : "\n"));
-        }
-    }
+   public static void run() {
+      int n = 10;
+      System.out.println("Fibonacci DP Demo (n = " + n + ")");
+      System.out.println("Bottom-up : " + up(n));
+      System.out.println("Top-down  : " + down(n));
+      System.out.println("\nSequence (0.." + n + "):");
+      for (int i = 0; i <= n; i++) {
+         System.out.print(up(i) + (i < n ? " " : "\n"));
+      }
+   }
 }
 ```
 
@@ -199,7 +203,7 @@ BUILD SUCCESSFUL in 1s
     # --- ScopeFileCallGraph ---
     "$SCRIPT_DIR/gradlew" -p "$SCRIPT_DIR" run \
     -PmainClass=com.ibm.wala.examples.drivers.ScopeFileCallGraph \
-    --args="-scopeFile $SCOPE_FILE -mainClass Lcom/example/Main"
+    --args="-scopeFile $SCOPE_FILE -mainClass Lcom/sirisuk/Main"
      
 ```
 
@@ -348,7 +352,16 @@ Call graph stats:
 
 #### Expected Output
 
-The driver will generate a .pdf file that convert the ClassHierachy into a Graph using graphviz
+A PDF file opens automatically showing the type hierarchy of the application classes as a directed graph:
+
+```
+<Primordial,Ljava/lang/Object>
+        |                    |
+        ▼                    ▼
+<Application,             <Application,
+ Lcom/sirisuk/             Lcom/sirisuk/
+ AnalysisClass>            Main>
+```
 
 ---
 
