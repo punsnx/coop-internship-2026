@@ -1,7 +1,7 @@
 # WALA-start Developer Manual
 
 
-> This manual documents everything needed to understand, set up, and run the WALA-start example programs.
+ This manual documents everything needed to understand, set up, and run the WALA-start example programs.
 
 ---
 
@@ -26,19 +26,75 @@
 
 ## Project Structure
 
-> **Owner: Pichaphop**
+```
+WALA-start/
+├── build.gradle.kts          ← Gradle build config
+├── settings.gradle.kts       ← Gradle project name
+├── gradlew / gradlew.bat     ← Gradle wrapper (no install needed)
+├── run_analysis.sh           ← main entry point: builds stdlib cache + runs a driver
+├── scope.txt                 ← auto-generated WALA scope file
+├── src/
+│   └── main/
+│       ├── java/com/ibm/wala/examples/
+│       │   ├── drivers/          ← runnable analysis entry points
+│       │   ├── analysis/         ← supporting analysis implementations
+│       │   ├── analysisscope/    ← AnalysisScope setup example
+│       │   └── util/             ← shared helpers
+│       └── resources/
+│           ├── wala.properties   ← WALA config (stdlib path, output dir)
+│           ├── Exclusions.txt    ← class patterns WALA should skip
+│           └── test-files/
+│               └── fibo.js       ← sample JS target
+└── out/                          ← generated output (PDF, dot, log)
+```
 
 ---
 
 ## Drivers Reference
 
-> **Owner: Pichaphop**
+### drivers/ — Java Analysis
+
+| File | Input | What it does |
+|------|-------|--------------|
+| `ScopeFileCallGraph.java` | scope file + `-mainClass` | Call graph from `.class` bytecode via scope file |
+| `SourceDirCallGraph.java` | `-sourceDir` + `-mainClass` | Call graph from `.java` source — uses ECJ in-memory |
+| `SourceDirCallGraphJavac.java` | `-sourceDir` + `-mainClass` | Same as above but uses `javac` instead of ECJ |
+| `PrintTypeHierarchy.java` | classpath | Prints full class hierarchy tree to terminal |
+| `PDFTypeHierarchy.java` | `-classpath` | Renders class hierarchy as a PDF graph diagram |
+| `ConstructAllIRs.java` | scope file | Builds SSA IR for every method — validates scope is correct |
+| `CSReachingDefsDriver.java` | scope file + class name | Context-sensitive reaching definitions dataflow |
+| `DemandPointsToDriver.java` | scope file | Demand-driven points-to analysis — what each pointer may reference |
+
+### analysis/ — Supporting Implementations
+
+| File | What it does |
+|------|--------------|
+| `SimpleThreadEscapeAnalysis.java` | Detects objects that escape their creating thread |
+| `dataflow/ContextInsensitiveReachingDefs.java` | Intraprocedural reaching defs — no call context |
+| `dataflow/ContextSensitiveReachingDefs.java` | Interprocedural reaching defs with call context |
+| `dataflow/IntraprocReachingDefs.java` | Basic intraprocedural reaching defs (simplest form) |
+
+### analysisscope/ and util/
+
+| File | What it does |
+|------|--------------|
+| `analysisscope/AnalysisScopeExample.java` | Example: how to build an `AnalysisScope` programmatically |
+| `util/ExampleUtil.java` | Shared helpers — adds default class exclusions, builds scope from classpath |
+
+### Resources and Root Configs
+
+| File | Purpose |
+|------|---------|
+| `src/main/resources/wala.properties` | `java_runtime_dir` (stdlib JAR dir) and `output_dir` for PDF drivers |
+| `src/main/resources/Exclusions.txt` | Regex patterns for JDK internals / GUI libs WALA should skip |
+| `build.gradle.kts` | JDK 21 toolchain, WALA 1.7.2 deps, ECJ 3.36.0 pin |
+| `scope.txt` | Auto-generated: `Primordial,Java,stdlib,none` + `Application` entry |
 
 ---
 
 ## Prerequisites
 
-> **Owner: Pichaphop**
+> **Owner: Prawit**
 
 ---
 
