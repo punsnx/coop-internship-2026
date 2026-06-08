@@ -26,25 +26,25 @@
 
 ## Project Structure
 
-> **Owner: Stamp**
+> **Owner: Pichaphop**
 
 ---
 
 ## Drivers Reference
 
-> **Owner: Stamp**
+> **Owner: Pichaphop**
 
 ---
 
 ## Prerequisites
 
-> **Owner: Stamp**
+> **Owner: Pichaphop**
 
 ---
 
 ## Loading Java Base Library
 
-> **Owner: Bus**
+> **Owner: Napongtorn**
 
 When working with WALA (Whole Program Analysis Library), you often need to include and configure the Java base library, which serves as a foundation for standard classes provided by Oracle's JDK. This section explains how to properly load the Java base library into your WALA setup:
 
@@ -73,7 +73,7 @@ By operating at this unique intersection between compilation and runtime executi
 
 ## How to Run
 
-> **Owner: Bus**
+> **Owner: Napongtorn**
 
 0. **Install JDK 21**
    ```bash
@@ -135,7 +135,7 @@ By operating at this unique intersection between compilation and runtime executi
 
 ## Running Parameters and Switching
 
-> **Owner: Bus**
+> **Owner: Napongtorn**
 
 ### Parameters for each drivers
 
@@ -160,7 +160,7 @@ By operating at this unique intersection between compilation and runtime executi
 
 ## Scope File Format
 
-> **Owner: Bus**
+> **Owner: Napongtorn**
 
 `scope.txt` is a plain text file with one entry per line:
 
@@ -186,7 +186,7 @@ Application,Java,classFile,/path/to/AnalysisClass.class
 
 ## Configuration Files
 
-> **Owner: Bus**
+> **Owner: Napongtorn**
 
 ### `build.gradle.kts` — notable settings
 
@@ -207,14 +207,14 @@ The ECJ pin prevents a `NoSuchMethodError` caused by Gradle upgrading ECJ to an 
 
 ## Further Understanding: Analyzing a Different Target
 
-> **Owner: Stamp**
+> **Owner: Pichaphop**
 
 
 ---
 
 ## Key WALA Concepts
 
-> **Owner: Stamp**
+> **Owner: Pichaphop**
 
 
 ---
@@ -366,19 +366,21 @@ Each step enriches the model: CHA knows **what exists**, IR knows **what happens
 
 ## How It All Works — Deep Dive
 
-> **Owner: Stamp**
+> **Owner: Pichaphop**
 
 
 ---
 
 ## Java rt Deprecated (replace with jmods)
 
-> **Owner: Stamp**
+> **Owner: Pichaphop**
 
 
 ---
 
 ## Our Troubleshooting
+
+> **Owner: Prawit**
 
 ### Setup & Environment
 
