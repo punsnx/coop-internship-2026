@@ -12,7 +12,14 @@ Note: Recompile with -Xlint:unchecked for details.
 
 > Task :processResources
 > Task :classes
+
 > Task :run
+invokestatic < Application, Lcom/sirisuk/AnalysisClass, down(I)J >@34 in Node: < Application, Lcom/sirisuk/AnalysisClass, run()V > Context: Everywhere
+POINTS TO RESULT: [SUCCESS,[]]
+invokestatic < Application, Lcom/sirisuk/AnalysisClass, down(I)J >@31 in Node: < Application, Lcom/sirisuk/AnalysisClass, down(I)J > Context: Everywhere
+POINTS TO RESULT: [SUCCESS,[]]
+invokestatic < Application, Lcom/sirisuk/AnalysisClass, down(I)J >@37 in Node: < Application, Lcom/sirisuk/AnalysisClass, down(I)J > Context: Everywhere
+POINTS TO RESULT: [SUCCESS,[]]
 
 [Incubating] Problems report is available at: file:///Users/sirisuk/Desktop/SKDEV/CS/y4s1/internship/test-app/wala/WALA-start-test/build/reports/problems/problems-report.html
 
