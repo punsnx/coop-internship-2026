@@ -23,6 +23,8 @@
 
 ## Project Structure
 
+> **Owner: Sirisuk**
+
 ```
 WALA-start/
 ├── build.gradle.kts          ← Gradle build config
@@ -48,6 +50,8 @@ WALA-start/
 ---
 
 ## Drivers Reference
+
+> **Owner: Sirisuk**
 
 ### drivers/ — Java Analysis
 
@@ -92,6 +96,18 @@ WALA-start/
 ## Prerequisites
 
 > **Owner: Prawit**
+
+| Requirement | Detail |
+|-------------|--------|
+| Java 21 | Must be set as `$JAVA_HOME`. Check: `echo $JAVA_HOME` |
+| Gradle | Included via `./gradlew` wrapper — no install needed |
+| `unzip` | Standard macOS/Linux tool — pre-installed |
+
+Set JAVA_HOME if not already set:
+
+```bash
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home
+```
 
 ---
 
