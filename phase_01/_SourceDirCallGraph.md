@@ -1,4 +1,4 @@
-waiting for edit
+# SourceDirCallGraph
 
 ---
 
@@ -61,8 +61,18 @@ waiting for edit
    export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home
    ./gradlew compileJava
    ```
+2. **Configure build.gradle.kts:**
+    ```kotlin
+        java.toolchain.languageVersion = JavaLanguageVersion.of(21)   // use system JDK 21
+        
+        configurations.all {
+          resolutionStrategy {
+            force("org.eclipse.jdt:ecj:3.36.0")   // pin ECJ to match jdt.core version
+          }
+        }
+    ```
 
-2. **Build the WALA stdlib cache (one-time setup):**
+3. **Build the WALA stdlib cache (one-time setup):**
 
    Java 9+ no longer ships `rt.jar`; WALA requires a JAR of the standard library. Extract it once from `java.base.jmod`:
    ```bash
@@ -74,20 +84,20 @@ waiting for edit
    ```
    This only needs to run once. Delete `/tmp/wala-stdlib` to force a rebuild (e.g. after changing JDK).
 
-3. **Set the environment variable for WALA:**
+4. **Set the environment variable for WALA:**
 
    `src/main/resources/wala.properties` must point to the stdlib cache directory:
    ```properties
    java_runtime_dir=/tmp/wala-stdlib
    ```
 
-4. **Run the driver:**
+5. **Run the driver:**
    ```bash
    ./gradlew run \
      -PmainClass=com.ibm.wala.examples.drivers.SourceDirCallGraph \
      --args="-sourceDir directory/path -mainClass Lcom/example/Main"
    ```  
-    **NOTE:** For full automates steps 3–6 script: (run it at WALA-start project root directory)
+    **NOTE:** For full automates steps 3–5 script: (run it at WALA-start project root directory)
    
    > **test.sh** 
    > ```bash

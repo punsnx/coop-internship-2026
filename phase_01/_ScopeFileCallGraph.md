@@ -362,7 +362,144 @@ Call graph stats:
 
 - **Visualization** 
   - Control Flow Graph (CFG), Basic Block (BB) and Call Graph (CG) [View PDF](https://github.com/punsnx/coop-internship-2026/blob/8a106723616c2ea583a12b792f0d72630798bec9/phase_01/other/assets/global/visualize_ScopeFileCallGraph.pdf)
-  
+  - <details>
+      <summary><label>Implementation</label> </summary>
+
+      ```java
+        
+          private static void printVisualization(CallGraph cg) throws IOException, WalaException {
+            new File("out").mkdirs();
+            DotUtil.setOutputType(DotUtil.DotOutputType.PDF);
+            
+            // --- Collect unique app methods (deduplicate by signature) ---
+            List<CGNode> methods = new ArrayList<>();
+            Map<String, Integer> methodIndex = new HashMap<>();
+            for (CGNode node : cg) {
+                boolean isApp = node.getMethod().getDeclaringClass().getClassLoader()
+                .getReference().equals(ClassLoaderReference.Application);
+                if (!isApp || node.getIR() == null) continue;
+                    String sig = node.getMethod().getSignature();
+                if (!methodIndex.containsKey(sig)) {
+                    methodIndex.put(sig, methods.size());
+                    methods.add(node);
+                }
+            }
+            
+            // --- DOT graph header ---
+            StringBuilder dot = new StringBuilder();
+            dot.append("""
+            digraph "FiboCFG" {
+            compound=true;
+            rankdir=TB;
+            node [shape=box, fontname="Courier", fontsize=9];
+            edge [fontsize=9];
+            
+                  """);
+            
+            Map<String, String> methodEntryNode = new HashMap<>();  // sig → entry BB node id
+            
+            // --- One cluster per method ---
+            for (int m = 0; m < methods.size(); m++) {
+            IR ir = methods.get(m).getIR();
+            SSACFG cfg = ir.getControlFlowGraph();
+            String sig = methods.get(m).getMethod().getSignature();
+            String idPrefix = "m" + m + "_";       // unique node id prefix per method
+            
+        //        System.out.println("\n[BB Dump: " + sig + "]\n" + ir);
+            
+                dot.append("""
+                      subgraph cluster_%d {
+                        label="%s";
+                        style=dashed; color=grey; fontsize=11; fontname="Helvetica-Bold";
+            
+                    """.formatted(m, dotLabel(sig)));
+            
+                // Basic block nodes
+                for (ISSABasicBlock bb : cfg) {
+                  String nodeId = idPrefix + "bb" + bb.getNumber();
+                  if (bb.isEntryBlock()) methodEntryNode.put(sig, nodeId);
+            
+                  // Label: type header + separator + phi instructions + SSA instructions
+                  StringBuilder label = new StringBuilder("BB").append(bb.getNumber());
+                  if      (bb.isEntryBlock())  label.append("  [ENTRY]");
+                  else if (bb.isExitBlock())   label.append("  [EXIT]");
+                  else if (bb.isCatchBlock())  label.append("  [CATCH]");
+                  label.append("\\l─────────────────\\l");
+                  Iterator<SSAPhiInstruction> phis = bb.iteratePhis();
+                  while (phis.hasNext()) label.append(dotLabel(phis.next().toString())).append("\\l");
+                  for (SSAInstruction inst : bb) {
+                    if (inst != null) label.append(dotLabel(inst.toString())).append("\\l");
+                  }
+            
+                  // Fill color by block type
+                  String fillColor = bb.isEntryBlock()  ? "#cce5ff"   // blue  = entry
+                                   : bb.isExitBlock()   ? "#ccffcc"   // green = exit
+                                   : bb.isCatchBlock()  ? "#ffdddd"   // red   = catch
+                                   : "#f9f9f9";                       // grey  = normal
+            
+                  dot.append("    %s [label=\"%s\", style=filled, fillcolor=\"%s\"];\n"
+                      .formatted(nodeId, label, fillColor));
+                }
+                dot.append("\n");
+            
+                // Control-flow edges within this method
+                for (ISSABasicBlock bb : cfg) {
+                  Iterator<ISSABasicBlock> successors = cfg.getSuccNodes(bb);
+                  while (successors.hasNext())
+                    dot.append("    %s -> %s;\n".formatted(
+                        idPrefix + "bb" + bb.getNumber(),
+                        idPrefix + "bb" + successors.next().getNumber()));
+                }
+                dot.append("  }\n\n");
+              }
+            
+              // --- Cross-method call edges ---
+              for (int m = 0; m < methods.size(); m++) {
+                CGNode caller = methods.get(m);
+                String callerSig = caller.getMethod().getSignature();
+                String callerPrefix = "m" + m + "_";
+            
+                Iterator<CallSiteReference> callSites = caller.iterateCallSites();
+                while (callSites.hasNext()) {
+                  CallSiteReference site = callSites.next();
+                  ISSABasicBlock[] callBBs = caller.getIR().getBasicBlocksForCall(site);
+                  if (callBBs == null) continue;
+            
+                  for (CGNode target : cg.getPossibleTargets(caller, site)) {
+                    String targetSig = target.getMethod().getSignature();
+                    if (!methodIndex.containsKey(targetSig)) continue;
+                    String targetEntry = methodEntryNode.get(targetSig);
+                    if (targetEntry == null) continue;
+            
+                    // Distinguish recursive self-call from a regular cross-method call
+                    boolean recursive = targetSig.equals(callerSig);
+                    String edgeStyle = recursive ? "bold"      : "dashed";
+                    String edgeColor = recursive ? "red"       : "blue";
+                    String edgeLabel = recursive ? "recursive" : "calls";
+            
+                    for (ISSABasicBlock callBB : callBBs)
+                      dot.append("  %s -> %s [style=%s, color=%s, label=\"%s\", constraint=false];\n"
+                          .formatted(callerPrefix + "bb" + callBB.getNumber(),
+                              targetEntry, edgeStyle, edgeColor, edgeLabel));
+                  }
+                }
+              }
+              dot.append("}\n");
+            
+              // --- Write DOT → PDF ---
+              Files.writeString(Paths.get("out/fibo_cfg.dot"), dot);
+              DotUtil.spawnDot("dot", "out/output.pdf", new File("out/fibo_cfg.dot"));
+              System.out.println("CFG PDF -> out/output.pdf");
+        }
+        
+        // Escape for DOT quoted strings: \ → \\, " → ', newline → \l (left-aligned line break)
+        private static String dotLabel(String s) {
+            return s.replace("\\", "\\\\").replace("\"", "'").replace("\n", "\\l");
+        }
+      ```
+
+      </details>
+
 ---
 
 ## Reproducibility
