@@ -52,6 +52,7 @@
 0. **Install JDK 21**
    ```bash
    brew install oracle-jdk@21 && echo "export JAVA_HOME=/path/to/java_home" >> ~/.bashrc
+   ```
 
 1. **Clone and build the project:**
    ```bash
@@ -89,11 +90,11 @@
 5. **Run the driver:**
    ```bash
    ./gradlew run \
-     -PmainClass=com.ibm.wala.examples.drivers.PrintTypeHierachy \
+     -PmainClass=com.ibm.wala.examples.drivers.PrintTypeHierarchy \
      --args="path/to/target"
    ```
 
-   **NOTE:** For full automates steps 3–6 script: (run it at WALA-start project root directory)
+   **NOTE:** For full automated steps 3–6 script: (run it at WALA-start project root directory)
 
    > **test.sh**
    > ```bash
@@ -154,7 +155,7 @@ WALA uses JVM internal names. Prefix `L`, replace `.` with `/`:
 
 ### Program Code
 
-**`PrintTypeHierachy.java`**
+**`PrintTypeHierarchy.java`**
 
 ```java
 public class PrintTypeHierarchy {

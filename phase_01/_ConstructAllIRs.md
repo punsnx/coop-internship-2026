@@ -101,7 +101,7 @@
      -PmainClass=com.ibm.wala.examples.drivers.ConstructAllIRs \
      --args="path/to/scope.txt"
    ```
-   **NOTE:** For full automates steps 3–6 script: (run it at WALA-start project root directory)
+   **NOTE:** For full automated steps 3–6 script: (run it at WALA-start project root directory)
    
    > **test.sh** 
    > ```bash
@@ -326,7 +326,6 @@ java_runtime_dir=/tmp/wala-stdlib
 ```
 **`scope.txt`**
 ```
-Primordial,Java,stdlib,none
 Primordial,Java,stdlib,none
 Application,Java,binaryDir,/Users/stamp/Uni-Ku-4/fibo/target/classes
 ```
