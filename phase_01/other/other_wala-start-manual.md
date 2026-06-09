@@ -15,9 +15,8 @@
 - [Running Parameters and Switching](#running-parameters-and-switching)
 - [Scope File Format](#scope-file-format)
 - [Configuration Files](#configuration-files)
-- [How It All Works](#how-it-all-works)
 - [Further Understanding: Analyzing a Different Target](#further-understanding-analyzing-a-different-target)
-- [Java Compilation Pipeline](#java-compilation-pipeline)
+- [How It All Works](#how-it-all-works)
 - [Our Troubleshooting](#our-troubleshooting)
 
 ---
