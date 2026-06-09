@@ -262,6 +262,65 @@ The ECJ pin prevents a `NoSuchMethodError` caused by Gradle upgrading ECJ to an 
 
 > **Owner: Pichaphop**
 
+To analyze a target beyond the standard Java library, WALA needs the full type context of that target — meaning all external dependencies must be provided so it can resolve types and build the class hierarchy. In this example, we use WALA to analyze itself.
+
+### WALA Self-Analysis Notes
+
+#### 1. Extra JARs Required
+
+`SourceDirCallGraph.java` imports WALA framework types that don't live in `java.base.jar`. Copy them into `/tmp/wala-stdlib/` once:
+
+```bash
+if [ ! -f /tmp/wala-stdlib/.libs-ready ]; then
+    find ~/.gradle/caches/modules-2/files-2.1/com.ibm.wala \
+        -name "*.jar" ! -name "*-sources.jar" ! -name "*-javadoc.jar" \
+        -exec cp {} /tmp/wala-stdlib/ \;
+    find ~/.gradle/caches/modules-2/files-2.1/org.eclipse.jdt \
+        -name "*.jar" ! -name "*-sources.jar" ! -name "*-javadoc.jar" \
+        -exec cp {} /tmp/wala-stdlib/ \;
+    touch /tmp/wala-stdlib/.libs-ready
+fi
+```
+
+`WalaProperties.getJarsInDirectory()` picks them up automatically — no config change needed.
+
+---
+
+#### 2. Two Args That Must Both Be Correct
+
+##### `-sourceDir` → point to `.java` files, not `.class` files
+
+```
+src/main/java/          ✓  ECJ parses .java source
+build/classes/java/main ✗  ECJ cannot parse bytecode
+```
+
+#### `-mainClass` → use WALA's internal type name format
+
+Prefix `L`, replace `.` with `/`:
+
+```
+package com.ibm.wala.examples.drivers;
+→ Lcom/ibm/wala/examples/drivers/SourceDirCallGraph  ✓
+
+LSourceDirCallGraph  ✗  (no package → class not found)
+```
+
+---
+
+### 3. `ExpressionMethodReference` Fix
+
+WALA 1.7.2's JDT translator doesn't handle method references. Replace with a lambda:
+
+```java
+// Before — crashes WALA's translator
+options.getSSAOptions().setDefaultValues(SymbolTable::getDefaultValue);
+
+// After — semantically identical, works fine
+options.getSSAOptions().setDefaultValues((symtab, vn) -> symtab.getDefaultValue(vn));
+```
+
+**File:** `src/main/java/com/ibm/wala/examples/drivers/SourceDirCallGraph.java`, line 102.
 
 ---
 
