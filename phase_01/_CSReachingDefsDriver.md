@@ -153,7 +153,7 @@
    > ## --- CSReachingDefsDriver ---
    > "$SCRIPT_DIR/gradlew" -p "$SCRIPT_DIR" run \
    >   -PmainClass=com.ibm.wala.examples.drivers.CSReachingDefsDriver \
-   >   --args="-scopeFile $SCOPE_FILE -mainClass LAnalysisClass"
+   >   --args="-scopeFile $SCOPE_FILE -mainClass Lcom/sirisuk/Main"
    >  
    > ```
    ***JAVA_HOME*** uncomment if you have a different JDK version.
