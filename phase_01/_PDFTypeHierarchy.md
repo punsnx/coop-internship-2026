@@ -156,5 +156,12 @@ from `java.lang.Object` — the root of all Java classes. The diagram has exactl
 ---
 
 ## Reproducibility
+I was able to run this driver, by change the path. Because my example codes were not store in the same place.
+I ran by this instead:
+```bash
+./gradlew run \
+-PmainClass=com.ibm.wala.examples.drivers.PDFTypeHierarchy \
+--args="-classpath ../fibo/targets/classes"
+```
 
 ---

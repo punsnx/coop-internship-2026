@@ -236,5 +236,15 @@ java_runtime_dir=/tmp/wala-stdlib
 ---
 
 ## Reproducibility
+I was able to reproduce by using the script, but I needed to change path at this line
+```
+   TARGET="$(cd "$SCRIPT_DIR" && realpath "../fibo/out-class/AnalysisClass.class")"
+   to
+   TARGET="$(cd "$SCRIPT_DIR" && realpath "../fibo/target/classes/com/sirisuk/AnalysisClass.class")"
 
+```
+to be able to do it.
+
+I also change arg to ../fibo/target/classes/com/sirisuk/, and able to run
+which confirm that it can point to directory as well, not only for just one class.
 ---

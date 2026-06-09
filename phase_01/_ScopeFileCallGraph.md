@@ -504,4 +504,47 @@ Call graph stats:
 
 ## Reproducibility
 
+I could run it by changing these lines in the script:
+
+```bash
+JAVA_HOME="/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home"
+# Removed "#" since my machine has JDK set to v17
+ 
+BUILD_DIR="$(cd "$SCRIPT_DIR" && realpath "/absolute/path/to/buildpath")"
+```
+
+to:
+
+```bash
+BUILD_DIR="$(cd "$SCRIPT_DIR" && realpath "../fibo/target/classes")"
+```
+
+and:
+
+```bash
+--args="-scopeFile $SCOPE_FILE -mainClass Lcom/example/Main"
+```
+
+to:
+
+```bash
+--args="-scopeFile $SCOPE_FILE -mainClass Lcom/sirisuk/Main"
+```
+ 
+---
+
+### Results Comparison
+
+My result differed slightly from my friend's:
+Mine produced more nodes, edges, and methods than my friend's .
+
+| Metric | Friend | Mine |
+|---|---|---|
+| Time | 2618 ms | 2563 ms |
+| Nodes | 8269 | 8280 |
+| Edges | 41059 | 41097 |
+| Methods | 5841 | 5847 |
+| Bytecode Bytes | 411139 | 411731 |
+
+
 ---

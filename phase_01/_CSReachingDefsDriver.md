@@ -305,4 +305,272 @@ Call graph stats:
 
 ## Reproducibility
 
+I could run the script by modifying the following lines:
+
+```bash
+line 6  - JAVA_HOME="/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home"
+line 15 - BUILD_DIR="$(cd "$SCRIPT_DIR" && realpath "../fibo/target/classes")"
+line 43 - --args="-scopeFile $SCOPE_FILE -mainClass Lcom/sirisuk/Main"
+```
+
+However, the standard `CSReachingDefsDriver` took too long to process because it does not use an exclusion file when building the analysis scope. To address this, I made the following modifications to the driver.
+
+---
+
+## Modifications
+
+### 1. Adding an Exclusion File
+
+To speed up the analysis, I passed `Exclusions.txt` when reading the analysis scope, which filters out irrelevant classes:
+
+```java
+AnalysisScope scope =
+    AnalysisScopeReader.instance.readJavaScope(
+        scopeFile,
+        new File(Objects.requireNonNull(
+            CSReachingDefsDriver.class.getClassLoader()
+                .getResource("Exclusions.txt")).getFile()),
+        CSReachingDefsDriver.class.getClassLoader());
+```
+
+**`Exclusions.txt`:**
+
+```text
+# Apple/Mac UI classes
+com\/apple\/.*
+apple\/.*
+
+# Swing/AWT UI
+javax\/swing\/.*
+javax\/awt\/.*
+java\/awt\/.*
+sun\/awt\/.*
+sun\/swing\/.*
+
+# Security
+java\/security\/.*
+javax\/security\/.*
+javax\/crypto\/.*
+sun\/security\/.*
+
+# RMI/networking
+java\/rmi\/.*
+javax\/management\/.*
+sun\/rmi\/.*
+
+# JDK internals
+jdk\/.*
+com\/sun\/.*
+sun\/.*
+
+# Reflection (significantly inflates analysis size)
+java\/lang\/reflect\/.*
+
+# Zip/jar internals
+java\/util\/zip\/.*
+java\/util\/jar\/.*
+```
+
+### 2. Supergraph Visualization
+
+I also added two methods to visualize the supergraph — one that prints it to the console, and one that generates a PDF output filtered to only the application's own classes.
+
+- `printSupergraph()` — prints each basic block and its successors, filtered by the app's package prefix
+- `generatePdf()` — produces a `.dot` file and renders it as a PDF via `DotUtil` (need Graphviz)
+
+The output PDF is written to `out-class/<ClassName>-supergraph.pdf`.
+
+[View supergraph PDF](phase_01/other/assets/pichaphop/supergraph.pdf)
+
+---
+
+## Full Modified Driver
+
+```java
+package com.ibm.wala.examples.drivers;
+
+import com.ibm.wala.core.util.config.AnalysisScopeReader;
+import com.ibm.wala.core.util.warnings.Warnings;
+import com.ibm.wala.dataflow.IFDS.ISupergraph;
+import com.ibm.wala.dataflow.IFDS.TabulationResult;
+import com.ibm.wala.examples.analysis.dataflow.ContextSensitiveReachingDefs;
+import com.ibm.wala.ipa.callgraph.AnalysisCache;
+import com.ibm.wala.ipa.callgraph.AnalysisCacheImpl;
+import com.ibm.wala.ipa.callgraph.AnalysisOptions;
+import com.ibm.wala.ipa.callgraph.AnalysisOptions.ReflectionOptions;
+import com.ibm.wala.ipa.callgraph.AnalysisScope;
+import com.ibm.wala.ipa.callgraph.CGNode;
+import com.ibm.wala.ipa.callgraph.CallGraph;
+import com.ibm.wala.ipa.callgraph.CallGraphBuilder;
+import com.ibm.wala.ipa.callgraph.CallGraphBuilderCancelException;
+import com.ibm.wala.ipa.callgraph.CallGraphStats;
+import com.ibm.wala.ipa.callgraph.Entrypoint;
+import com.ibm.wala.ipa.callgraph.impl.Util;
+import com.ibm.wala.ipa.cfg.BasicBlockInContext;
+import com.ibm.wala.ipa.cha.ClassHierarchyException;
+import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
+import com.ibm.wala.ipa.cha.IClassHierarchy;
+import com.ibm.wala.ssa.analysis.IExplodedBasicBlock;
+import com.ibm.wala.util.WalaException;
+import com.ibm.wala.util.collections.Pair;
+import com.ibm.wala.util.graph.Graph;
+import com.ibm.wala.util.graph.impl.SlowSparseNumberedGraph;
+import com.ibm.wala.util.io.CommandLine;
+import com.ibm.wala.util.viz.DotUtil;
+import com.ibm.wala.util.viz.NodeDecorator;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.Objects;
+import java.util.Properties;
+
+public class CSReachingDefsDriver {
+
+  public static void main(String[] args)
+      throws IOException, WalaException, IllegalArgumentException, CallGraphBuilderCancelException {
+
+    long start = System.currentTimeMillis();
+    Properties p = CommandLine.parse(args);
+
+    String scopeFile = p.getProperty("scopeFile");
+    if (scopeFile == null) throw new IllegalArgumentException("must specify scope file");
+
+    String mainClass = p.getProperty("mainClass");
+    if (mainClass == null) throw new IllegalArgumentException("must specify main class");
+
+    String appPackage = derivePackageFromMainClass(mainClass);
+    System.out.println("Filtering app classes with prefix: " + appPackage);
+
+    AnalysisScope scope =
+        AnalysisScopeReader.instance.readJavaScope(
+            scopeFile,
+            new File(Objects.requireNonNull(
+                CSReachingDefsDriver.class.getClassLoader()
+                    .getResource("Exclusions.txt")).getFile()),
+            CSReachingDefsDriver.class.getClassLoader());
+
+    IClassHierarchy cha = ClassHierarchyFactory.make(scope);
+    System.out.println(cha.getNumberOfClasses() + " classes");
+    System.out.println(Warnings.asString());
+    Warnings.clear();
+
+    AnalysisOptions options = new AnalysisOptions();
+    Iterable<Entrypoint> entrypoints = Util.makeMainEntrypoints(cha, mainClass);
+    options.setEntrypoints(entrypoints);
+    options.setReflectionOptions(ReflectionOptions.NONE);
+
+    AnalysisCache cache = new AnalysisCacheImpl();
+    CallGraphBuilder builder = Util.makeZeroOneContainerCFABuilder(options, cache, cha);
+    System.out.println("building call graph...");
+    CallGraph cg = builder.makeCallGraph(options, null);
+    long end = System.currentTimeMillis();
+    System.out.println("done");
+    System.out.println("took " + (end - start) + "ms");
+    System.out.println(CallGraphStats.getStats(cg));
+
+    ContextSensitiveReachingDefs reachingDefs = new ContextSensitiveReachingDefs(cg, cache);
+    TabulationResult<BasicBlockInContext<IExplodedBasicBlock>, CGNode, Pair<CGNode, Integer>>
+        result = reachingDefs.analyze();
+    ISupergraph<BasicBlockInContext<IExplodedBasicBlock>, CGNode> supergraph =
+        reachingDefs.getSupergraph();
+
+    printSupergraph(supergraph, appPackage);
+    generatePdf(supergraph, appPackage, mainClass);
+  }
+
+  /**
+   * Derives package prefix from the mainClass argument.
+   * e.g. "Lcom/sirisuk/Main" -> "Lcom/sirisuk/"
+   *      "LMain"             -> "LMain" (no package)
+   */
+  private static String derivePackageFromMainClass(String mainClass) {
+    int lastSlash = mainClass.lastIndexOf('/');
+    if (lastSlash != -1) {
+      return mainClass.substring(0, lastSlash + 1);
+    }
+    return mainClass;
+  }
+
+  private static void printSupergraph(
+      ISupergraph<BasicBlockInContext<IExplodedBasicBlock>, CGNode> supergraph,
+      String appPackage) {
+
+    System.out.println("\n===== SUPERGRAPH =====");
+    for (BasicBlockInContext<IExplodedBasicBlock> node : supergraph) {
+      CGNode cgNode = node.getNode();
+      String className = cgNode.getMethod().getDeclaringClass().getName().toString();
+      if (!className.startsWith(appPackage)) continue;
+
+      System.out.println("\nBLOCK: " + cgNode.getMethod().getSignature()
+          + " BB" + node.getNumber());
+
+      Iterator<BasicBlockInContext<IExplodedBasicBlock>> succs = supergraph.getSuccNodes(node);
+      while (succs.hasNext()) {
+        BasicBlockInContext<IExplodedBasicBlock> succ = succs.next();
+        System.out.println("  --> " + succ.getNode().getMethod().getSignature()
+            + " BB" + succ.getNumber());
+      }
+    }
+    System.out.println("\n===== END SUPERGRAPH =====");
+  }
+
+  private static void generatePdf(
+      ISupergraph<BasicBlockInContext<IExplodedBasicBlock>, CGNode> supergraph,
+      String appPackage, String mainClass) throws WalaException {
+
+    System.out.println("Start create PDF Supergraph\n");
+
+    NodeDecorator<BasicBlockInContext<IExplodedBasicBlock>> labels =
+        node -> {
+          String cls = node.getNode().getMethod().getDeclaringClass().getName().toString();
+          cls = cls.substring(cls.lastIndexOf('/') + 1);
+          String method = node.getNode().getMethod().getName().toString();
+          return cls + "." + method + "\nBB" + node.getNumber();
+        };
+
+    String baseName = mainClass.substring(mainClass.lastIndexOf('/') + 1);
+    String outputDir = System.getProperty("user.dir") + "/out-class";
+    new File(outputDir).mkdirs();
+    String dotFile = String.format("%s/%s-supergraph.dot", outputDir, baseName);
+    String pdfFile = String.format("%s/%s-supergraph.pdf", outputDir, baseName);
+
+    Graph<BasicBlockInContext<IExplodedBasicBlock>> filtered =
+        filterAppOnly(supergraph, appPackage);
+
+    DotUtil.dotify(filtered, labels, dotFile, pdfFile, "dot");
+    System.out.println("PDF written to " + pdfFile);
+  }
+
+  private static Graph<BasicBlockInContext<IExplodedBasicBlock>> filterAppOnly(
+      ISupergraph<BasicBlockInContext<IExplodedBasicBlock>, CGNode> supergraph,
+      String appPackage) {
+
+    SlowSparseNumberedGraph<BasicBlockInContext<IExplodedBasicBlock>> filtered =
+        SlowSparseNumberedGraph.make();
+
+    for (BasicBlockInContext<IExplodedBasicBlock> node : supergraph) {
+      String cls = node.getNode().getMethod().getDeclaringClass().getName().toString();
+      if (cls.startsWith(appPackage)) {
+        filtered.addNode(node);
+      }
+    }
+
+    for (BasicBlockInContext<IExplodedBasicBlock> node : supergraph) {
+      String cls = node.getNode().getMethod().getDeclaringClass().getName().toString();
+      if (!cls.startsWith(appPackage)) continue;
+
+      Iterator<BasicBlockInContext<IExplodedBasicBlock>> succs = supergraph.getSuccNodes(node);
+      while (succs.hasNext()) {
+        BasicBlockInContext<IExplodedBasicBlock> succ = succs.next();
+        String succCls = succ.getNode().getMethod().getDeclaringClass().getName().toString();
+        if (succCls.startsWith(appPackage)) {
+          filtered.addEdge(node, succ);
+        }
+      }
+    }
+    return filtered;
+  }
+}
+```
 ---
