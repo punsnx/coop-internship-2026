@@ -1,7 +1,6 @@
 # WALA-start Developer Manual
 
-
- This manual documents everything needed to understand, set up, and run the WALA-start example programs.
+This manual documents everything needed to understand, set up, and run the WALA-start example programs.
 
 ---
 
@@ -15,14 +14,15 @@
 - [Running Parameters and Switching](#running-parameters-and-switching)
 - [Scope File Format](#scope-file-format)
 - [Configuration Files](#configuration-files)
-- [How It All Works](#how-it-all-works)
 - [Further Understanding: Analyzing a Different Target](#further-understanding-analyzing-a-different-target)
-- [Java Compilation Pipeline](#java-compilation-pipeline)
+- [How It All Works](#how-it-all-works)
 - [Our Troubleshooting](#our-troubleshooting)
 
 ---
 
 ## Project Structure
+
+> **Owner: Sirisuk**
 
 ```
 WALA-start/
@@ -49,6 +49,8 @@ WALA-start/
 ---
 
 ## Drivers Reference
+
+> **Owner: Sirisuk**
 
 ### drivers/ — Java Analysis
 
@@ -93,6 +95,20 @@ WALA-start/
 ## Prerequisites
 
 > **Owner: Prawit**
+
+| Requirement | Detail |
+|-------------|--------|
+| Java 21 | Must be set as `$JAVA_HOME`. Check: `echo $JAVA_HOME` |
+| Gradle | Included via `./gradlew` wrapper — no install needed |
+| `unzip` | Standard macOS/Linux tool — pre-installed |
+| Graphviz | Required by `PDFTypeHierarchy` to render the type hierarchy as a PDF. Install: `brew install graphviz`. Verify: `which dot` |
+| Python 3 | Required by `run.py` runner script on some setups. Check: `python3 --version` |
+
+Set JAVA_HOME if not already set:
+
+```bash
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home
+```
 
 ---
 
@@ -191,7 +207,7 @@ By operating at this unique intersection between compilation and runtime executi
 
 > **Owner: Napongtorn**
 
-### Parameters for each drivers
+### Parameters for each driver
 
 | Driver | Input |
 |--------|-------|
@@ -227,7 +243,7 @@ Loader,Language,type,path
 | Loader | `Primordial` (stdlib), `Application` (your code), `Extension` (libraries) | refers to Java ClassLoader for locating and loading the class bytes |
 | Language | `Java` | specify the programming language used when generating the bytecode |
 | type | `stdlib`, `classFile`, `jarFile`, `binaryDir` | describe the nature of the resources being loaded |
-| path | file path, or `none` for `stdlib` (uses running JVM) | specify the location where the JVM can find the tool |
+| path | file path, or `none` for `stdlib` (uses running JVM) | specify the file system path where the class loader can find the class bytes |
 
 Example `scope.txt`:
 
@@ -263,11 +279,69 @@ The ECJ pin prevents a `NoSuchMethodError` caused by Gradle upgrading ECJ to an 
 
 > **Owner: Pichaphop**
 
+To analyze a target beyond the standard Java library, WALA needs the full type context of that target — meaning all external dependencies must be provided so it can resolve types and build the class hierarchy. In this example, we use WALA to analyze itself.
+
+### WALA Self-Analysis Notes
+
+#### 1. Extra JARs Required
+
+`SourceDirCallGraph.java` imports WALA framework types that don't live in `java.base.jar`. Copy them into `/tmp/wala-stdlib/` once:
+
+```bash
+if [ ! -f /tmp/wala-stdlib/.libs-ready ]; then
+    find ~/.gradle/caches/modules-2/files-2.1/com.ibm.wala \
+        -name "*.jar" ! -name "*-sources.jar" ! -name "*-javadoc.jar" \
+        -exec cp {} /tmp/wala-stdlib/ \;
+    find ~/.gradle/caches/modules-2/files-2.1/org.eclipse.jdt \
+        -name "*.jar" ! -name "*-sources.jar" ! -name "*-javadoc.jar" \
+        -exec cp {} /tmp/wala-stdlib/ \;
+    touch /tmp/wala-stdlib/.libs-ready
+fi
+```
+
+`WalaProperties.getJarsInDirectory()` picks them up automatically — no config change needed.
+
+---
+
+#### 2. Two Args That Must Both Be Correct
+
+##### `-sourceDir` → point to `.java` files, not `.class` files
+
+```
+src/main/java/          ✓  ECJ parses .java source
+build/classes/java/main ✗  ECJ cannot parse bytecode
+```
+
+#### `-mainClass` → use WALA's internal type name format
+
+Prefix `L`, replace `.` with `/`:
+
+```
+package com.ibm.wala.examples.drivers;
+→ Lcom/ibm/wala/examples/drivers/SourceDirCallGraph  ✓
+
+LSourceDirCallGraph  ✗  (no package → class not found)
+```
+
+---
+
+### 3. `ExpressionMethodReference` Fix
+
+WALA 1.7.2's JDT translator doesn't handle method references. Replace with a lambda:
+
+```java
+// Before — crashes WALA's translator
+options.getSSAOptions().setDefaultValues(SymbolTable::getDefaultValue);
+
+// After — semantically identical, works fine
+options.getSSAOptions().setDefaultValues((symtab, vn) -> symtab.getDefaultValue(vn));
+```
+
+**File:** `src/main/java/com/ibm/wala/examples/drivers/SourceDirCallGraph.java`, line 102.
 
 ---
 
 ## How It All Works
-### Java Compilation Pipeline
 
 ### 1. Overview — Java Execution Stack
 
