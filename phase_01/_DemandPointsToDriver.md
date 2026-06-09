@@ -330,8 +330,6 @@ POINTS TO RESULT: [SUCCESS,[]]
 
 ## Reproducibility
 
-## Reproducibility
-
 ### Result
 ⚠️ PARTIAL PASS
 
