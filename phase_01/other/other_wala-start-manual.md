@@ -102,6 +102,8 @@ WALA-start/
 | Java 21 | Must be set as `$JAVA_HOME`. Check: `echo $JAVA_HOME` |
 | Gradle | Included via `./gradlew` wrapper — no install needed |
 | `unzip` | Standard macOS/Linux tool — pre-installed |
+| Graphviz | Required by `PDFTypeHierarchy` to render the type hierarchy as a PDF. Install: `brew install graphviz`. Verify: `which dot` |
+| Python 3 | Required by `run.py` runner script on some setups. Check: `python3 --version` |
 
 Set JAVA_HOME if not already set:
 
