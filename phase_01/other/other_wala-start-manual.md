@@ -1,7 +1,6 @@
 # WALA-start Developer Manual
 
-
- This manual documents everything needed to understand, set up, and run the WALA-start example programs.
+This manual documents everything needed to understand, set up, and run the WALA-start example programs.
 
 ---
 
@@ -208,7 +207,7 @@ By operating at this unique intersection between compilation and runtime executi
 
 > **Owner: Napongtorn**
 
-### Parameters for each drivers
+### Parameters for each driver
 
 | Driver | Input |
 |--------|-------|
@@ -244,7 +243,7 @@ Loader,Language,type,path
 | Loader | `Primordial` (stdlib), `Application` (your code), `Extension` (libraries) | refers to Java ClassLoader for locating and loading the class bytes |
 | Language | `Java` | specify the programming language used when generating the bytecode |
 | type | `stdlib`, `classFile`, `jarFile`, `binaryDir` | describe the nature of the resources being loaded |
-| path | file path, or `none` for `stdlib` (uses running JVM) | specify the location where the JVM can find the tool |
+| path | file path, or `none` for `stdlib` (uses running JVM) | specify the file system path where the class loader can find the class bytes |
 
 Example `scope.txt`:
 
@@ -343,7 +342,6 @@ options.getSSAOptions().setDefaultValues((symtab, vn) -> symtab.getDefaultValue(
 ---
 
 ## How It All Works
-### Java Compilation Pipeline
 
 ### 1. Overview — Java Execution Stack
 

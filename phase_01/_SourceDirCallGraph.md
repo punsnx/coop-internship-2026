@@ -24,8 +24,8 @@
 ## Input & Output
 
 * **Input:**
-    - A directory path containing Java source code classes(-sourceDir)
-    - A class name path for the entry point (-mainClass: the driver will use the main() method of the provided class)
+    - A directory path containing Java source code files (`-sourceDir`)
+    - A class name for the entry point (`-mainClass`: the driver will use the main() method of the provided class)
 * **Output:**
     - A Call Graph (default: 0-1-CFA) and its statistics
 
@@ -97,7 +97,7 @@
      -PmainClass=com.ibm.wala.examples.drivers.SourceDirCallGraph \
      --args="-sourceDir directory/path -mainClass Lcom/example/Main"
    ```  
-    **NOTE:** For full automates steps 3–5 script: (run it at WALA-start project root directory)
+    **NOTE:** For full automated steps 3–5 script: (run it at WALA-start project root directory)
    
    > **test.sh** 
    > ```bash
@@ -149,7 +149,7 @@ WALA uses JVM internal names. Prefix `L`, replace `.` with `/`:
 | Java name | WALA `-mainClass` argument |
 |-----------|--------------------------|
 | `Main` (default package) | `LMain` |
-| `com.example.Main` | `Lcom/exaple/Main` |
+| `com.example.Main` | `Lcom/example/Main` |
 
 ---
 

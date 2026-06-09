@@ -1,7 +1,7 @@
 # Git branch manual
 
 # branch info
-- main - main repository for public and realase 
+- main - main repository for public and release 
 - develop - development repository
 - name/main your upstream FIT passau repository
 - name/develop (optional)
