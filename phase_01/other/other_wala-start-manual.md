@@ -1,7 +1,6 @@
 # WALA-start Developer Manual
 
-
- This manual documents everything needed to understand, set up, and run the WALA-start example programs.
+This manual documents everything needed to understand, set up, and run the WALA-start example programs.
 
 ---
 
@@ -16,10 +15,7 @@
 - [Scope File Format](#scope-file-format)
 - [Configuration Files](#configuration-files)
 - [Further Understanding: Analyzing a Different Target](#further-understanding-analyzing-a-different-target)
-- [Key WALA Concepts](#key-wala-concepts)
-- [Java Compilation Pipeline](#java-compilation-pipeline)
-- [How It All Works — Deep Dive](#how-it-all-works--deep-dive)
-- [Java rt Deprecated (replace with jmods)](#java-rt-deprecated-replace-with-jmods)
+- [How It All Works](#how-it-all-works)
 - [Our Troubleshooting](#our-troubleshooting)
 
 ---
@@ -94,13 +90,23 @@ WALA-start/
 
 ## Prerequisites
 
-> **Owner: Prawit**
+| Requirement | Detail |
+|-------------|--------|
+| Java 21 | Must be set as `$JAVA_HOME`. Check: `echo $JAVA_HOME` |
+| Gradle | Included via `./gradlew` wrapper — no install needed |
+| `unzip` | Standard macOS/Linux tool — pre-installed |
+| Graphviz | Required by `PDFTypeHierarchy` to render the type hierarchy as a PDF. Install: `brew install graphviz`. Verify: `which dot` |
+| Python 3 | Required by `run.py` runner script on some setups. Check: `python3 --version` |
+
+Set JAVA_HOME if not already set:
+
+```bash
+export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home
+```
 
 ---
 
 ## Loading Java Base Library
-
-> **Owner: Napongtorn**
 
 When working with WALA (Whole Program Analysis Library), you often need to include and configure the Java base library, which serves as a foundation for standard classes provided by Oracle's JDK. This section explains how to properly load the Java base library into your WALA setup:
 
@@ -113,6 +119,7 @@ The Java base library (`java.base`) contains essential classes and functionaliti
 1. **Set Up Your Environment**: Ensure that your environment is correctly configured to include the Java base library. This might involve setting up properties or environment variables to point to the correct directory where the JAR file of `java.base` is located.
 
 2. **Configuration via Properties File**: Use a configuration file (e.g., `wala.properties`) within your WALA project to specify the path to the Java base library. This can be done by setting the property `java_runtime_dir` to the directory where the JAR file is stored. For example:
+
 ### Additional Context on WALA’s Role in the Java Ecosystem
 
 Beyond its role as a static analysis tool, WALA (Whole Program Analysis Library) plays a pivotal part in bridging the gap between compiled bytecode and runtime execution. This section delves into how WALA contributes to the broader Java ecosystem by enabling advanced analyses that are best performed at the bytecode level:
@@ -128,8 +135,6 @@ By operating at this unique intersection between compilation and runtime executi
 ---
 
 ## How to Run
-
-> **Owner: Napongtorn**
 
 0. **Install JDK 21**
    ```bash
@@ -191,9 +196,7 @@ By operating at this unique intersection between compilation and runtime executi
 
 ## Running Parameters and Switching
 
-> **Owner: Napongtorn**
-
-### Parameters for each drivers
+### Parameters for each driver
 
 | Driver | Input |
 |--------|-------|
@@ -216,8 +219,6 @@ By operating at this unique intersection between compilation and runtime executi
 
 ## Scope File Format
 
-> **Owner: Napongtorn**
-
 `scope.txt` is a plain text file with one entry per line:
 
 ```
@@ -229,7 +230,7 @@ Loader,Language,type,path
 | Loader | `Primordial` (stdlib), `Application` (your code), `Extension` (libraries) | refers to Java ClassLoader for locating and loading the class bytes |
 | Language | `Java` | specify the programming language used when generating the bytecode |
 | type | `stdlib`, `classFile`, `jarFile`, `binaryDir` | describe the nature of the resources being loaded |
-| path | file path, or `none` for `stdlib` (uses running JVM) | specify the location where the JVM can find the tool |
+| path | file path, or `none` for `stdlib` (uses running JVM) | specify the file system path where the class loader can find the class bytes |
 
 Example `scope.txt`:
 
@@ -241,8 +242,6 @@ Application,Java,classFile,/path/to/AnalysisClass.class
 ---
 
 ## Configuration Files
-
-> **Owner: Napongtorn**
 
 ### `build.gradle.kts` — notable settings
 
@@ -263,19 +262,69 @@ The ECJ pin prevents a `NoSuchMethodError` caused by Gradle upgrading ECJ to an 
 
 ## Further Understanding: Analyzing a Different Target
 
-> **Owner: Pichaphop**
+To analyze a target beyond the standard Java library, WALA needs the full type context of that target — meaning all external dependencies must be provided so it can resolve types and build the class hierarchy. In this example, we use WALA to analyze itself.
 
+### WALA Self-Analysis Notes
+
+#### 1. Extra JARs Required
+
+`SourceDirCallGraph.java` imports WALA framework types that don't live in `java.base.jar`. Copy them into `/tmp/wala-stdlib/` once:
+
+```bash
+if [ ! -f /tmp/wala-stdlib/.libs-ready ]; then
+    find ~/.gradle/caches/modules-2/files-2.1/com.ibm.wala \
+        -name "*.jar" ! -name "*-sources.jar" ! -name "*-javadoc.jar" \
+        -exec cp {} /tmp/wala-stdlib/ \;
+    find ~/.gradle/caches/modules-2/files-2.1/org.eclipse.jdt \
+        -name "*.jar" ! -name "*-sources.jar" ! -name "*-javadoc.jar" \
+        -exec cp {} /tmp/wala-stdlib/ \;
+    touch /tmp/wala-stdlib/.libs-ready
+fi
+```
+
+`WalaProperties.getJarsInDirectory()` picks them up automatically — no config change needed.
 
 ---
 
-## Key WALA Concepts
+#### 2. Two Args That Must Both Be Correct
 
-> **Owner: Pichaphop**
+##### `-sourceDir` → point to `.java` files, not `.class` files
 
+```
+src/main/java/          ✓  ECJ parses .java source
+build/classes/java/main ✗  ECJ cannot parse bytecode
+```
+
+#### `-mainClass` → use WALA's internal type name format
+
+Prefix `L`, replace `.` with `/`:
+
+```
+package com.ibm.wala.examples.drivers;
+→ Lcom/ibm/wala/examples/drivers/SourceDirCallGraph  ✓
+
+LSourceDirCallGraph  ✗  (no package → class not found)
+```
 
 ---
 
-## Java Compilation Pipeline
+### 3. `ExpressionMethodReference` Fix
+
+WALA 1.7.2's JDT translator doesn't handle method references. Replace with a lambda:
+
+```java
+// Before — crashes WALA's translator
+options.getSSAOptions().setDefaultValues(SymbolTable::getDefaultValue);
+
+// After — semantically identical, works fine
+options.getSSAOptions().setDefaultValues((symtab, vn) -> symtab.getDefaultValue(vn));
+```
+
+**File:** `src/main/java/com/ibm/wala/examples/drivers/SourceDirCallGraph.java`, line 102.
+
+---
+
+## How It All Works
 
 ### 1. Overview — Java Execution Stack
 
@@ -420,27 +469,11 @@ Each step enriches the model: CHA knows **what exists**, IR knows **what happens
 
 ---
 
-## How It All Works — Deep Dive
-
-> **Owner: Pichaphop**
-
-
----
-
-## Java rt Deprecated (replace with jmods)
-
-> **Owner: Pichaphop**
-
-
----
-
 ## Our Troubleshooting
-
-> **Owner: Prawit**
 
 ### Setup & Environment
 
-### `JAVA_HOME must be set`
+#### `JAVA_HOME must be set`
 
 **Symptom:**
 ```
@@ -456,7 +489,7 @@ Add this line to your `~/.zshrc` or `~/.bashrc` to make it permanent.
 
 ---
 
-### `J2SE_DIR not set`
+#### `J2SE_DIR not set`
 
 **Symptom:**
 ```
@@ -477,7 +510,7 @@ If the file is missing, recreate it with the content above.
 
 ---
 
-### Script stops silently after `"Building WALA stdlib cache..."`
+#### Script stops silently after `"Building WALA stdlib cache..."`
 
 **Symptom:** The script prints `"Building WALA stdlib cache (one-time)..."` and then stops with no error message.
 
@@ -493,7 +526,7 @@ This tells the shell to ignore the non-zero exit from `unzip` and continue.
 
 ### Class Hierarchy & Stdlib
 
-### `ClassHierarchyException: failed to load root Ljava/lang/Object`
+#### `ClassHierarchyException: failed to load root Ljava/lang/Object`
 
 **Symptom:**
 ```
@@ -509,7 +542,7 @@ rm -rf /tmp/wala-stdlib
 
 ---
 
-### `NoSuchMethodError: Scanner.getNextToken`
+#### `NoSuchMethodError: Scanner.getNextToken`
 
 **Symptom:**
 ```
@@ -535,7 +568,7 @@ After editing, re-run with these commands:
 
 ### SourceDirCallGraph — Source & Entry Point Errors
 
-### `could not resolve <Source, LClassName, main>`
+#### `could not resolve <Source, LClassName, main>`
 
 **Symptom:**
 ```
@@ -569,7 +602,7 @@ UNREACHABLE from any entry point
 
 ---
 
-### `UnimplementedError: Unhandled JDT node type ExpressionMethodReference`
+#### `UnimplementedError: Unhandled JDT node type ExpressionMethodReference`
 
 **Symptom:**
 ```

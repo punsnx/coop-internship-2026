@@ -17,7 +17,7 @@
 
 ## Functionality
 
-`CSReachingDefsDriver` is a WALA driver that reads the bytecode of a Java application and performs an **interprocedural, context-sensitive dataflow analysis**. It computes reaching definitions across the entire application call graph using a tabulation solver. This analysis helps in understanding how values flow through different parts of the program based on method calls and variable uses, which is particularly useful for debugging and static analyses.
+`CSReachingDefsDriver` is a WALA driver that reads the bytecode of a Java application and performs an **interprocedural, context-sensitive dataflow analysis**. It computes reaching definitions across the entire application call graph using a tabulation solver. This analysis helps understand how variable definitions flow through different method call contexts, which is particularly useful for debugging and static analyses.
 
 ---
 
@@ -54,6 +54,7 @@
 0. **Install JDK 21**
    ```bash
    brew install oracle-jdk@21 && echo "export JAVA_HOME=/path/to/java_home" >> ~/.bashrc
+   ```
 
 1. **Clone and build the project:**
    ```bash
@@ -101,11 +102,11 @@
 6. **Run the driver:**
    ```bash
    ./gradlew run \
-     -PmainClass=com.ibm.wala.examples.drivers.ScopeFileCallGraph \
+     -PmainClass=com.ibm.wala.examples.drivers.CSReachingDefsDriver \
      --args="-scopeFile scope.txt -mainClass Lcom/example/Main"
    ```
 
-   **NOTE:** For full automates steps 3–6 script: (run it at WALA-start project root directory)
+   **NOTE:** For full automated steps 3–6 script: (run it at WALA-start project root directory)
 
    > **test.sh**
    > ```bash
@@ -152,7 +153,7 @@
    > ## --- CSReachingDefsDriver ---
    > "$SCRIPT_DIR/gradlew" -p "$SCRIPT_DIR" run \
    >   -PmainClass=com.ibm.wala.examples.drivers.CSReachingDefsDriver \
-   >   --args="-scopeFile $SCOPE_FILE -mainClass LAnalysisClass"
+   >   --args="-scopeFile $SCOPE_FILE -mainClass Lcom/sirisuk/Main"
    >  
    > ```
    ***JAVA_HOME*** uncomment if you have a different JDK version.

@@ -113,7 +113,7 @@
      --args="-scopeFile scope.txt -mainClass Lcom/example/Main"
    ```
 
-   **NOTE:** For full automates steps 3–6 script: (run it at WALA-start project root directory)
+   **NOTE:** For full automated steps 3–6 script: (run it at WALA-start project root directory)
    
    > **test.sh** 
    > ```bash

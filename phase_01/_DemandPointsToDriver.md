@@ -17,7 +17,7 @@
 ## Functionality
  
 `DemandPointsToDriver` is a WALA driver that implements a **demand-driven points-to analysis** technique, meaning the driver can be modified to query specific variables the user is interested in. 
->Note that this driver requires a baseline call graph first, so it build a simple call graph such as **CHA** (Class Hierarchy Analysis), and then do the analysis technique.
+>Note that this driver requires a baseline call graph first, so it builds a simple call graph such as **CHA** (Class Hierarchy Analysis), and then performs the analysis.
  
 ---
  
@@ -90,7 +90,7 @@
      -PmainClass=com.ibm.wala.examples.drivers.DemandPointsToDriver \
      --args="target/classes"
    ```
-      **NOTE:** For full automates steps 3–6 script: (run it at WALA-start project root directory)
+      **NOTE:** For full automated steps 3–5 script: (run it at WALA-start project root directory)
    
    > **test.sh** 
    > ```bash
@@ -114,6 +114,7 @@
    > mkdir -p src/main/resources/
    > echo "java_runtime_dir=/tmp/wala-stdlib" > src/main/resources/wala.properties
    >
+   > SCOPE_FILE="$SCRIPT_DIR/scope.txt"
    > {
    > echo "Primordial,Java,stdlib,none"
    > echo "Application,Java,binaryDir,$BUILD_DIR"
