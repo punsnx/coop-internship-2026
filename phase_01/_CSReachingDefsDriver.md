@@ -316,6 +316,6 @@ scope.setExclusions(new PatternsFilter(patterns.stream()));
 
 ### Difference from Reference
 ✅ Matches reference behavior.
-[View logs](https://github.com/punsnx/coop-internship-2026/blob/56f5ed0f417941e58eb9a887bab6ca6332421f3f/phase_01/other/assets/sirisuk/test-logs/CSReachingDefsDriver.log)
+[View logs](/phase_01/other/assets/sirisuk/test-logs/CSReachingDefsDriver.log)
 
 ---
