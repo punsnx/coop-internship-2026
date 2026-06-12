@@ -2,10 +2,23 @@
 
 ---
 
+## Table of Contents
+
+- [Functionality](#functionality)
+- [Input & Output](#input--output)
+- [Run Instructions](#run-instructions)
+    - [Prerequisites](#prerequisites)
+    - [Steps](#steps)
+    - [Sample Input](#sample-input)
+    - [Expected Output](#expected-output)
+- [Reproducibility](#reproducibility)
+
+---
+
 ## Functionality
 
 `PDFTypeHierarchy` builds a class hierarchy from compiled Java bytecode and renders it as a
-visual diagram in a form of PDF file. It uses Graphviz (`dot`) to convert the hierarchy into a directed graph,
+visual diagram as a PDF file. It uses Graphviz (`dot`) to convert the hierarchy into a directed graph,
 where edges point from parent classes/interfaces to their subtypes, then opens the
 result in the system's default PDF viewer. Only classes loaded by the Application class loader
 are shown (JDK internals are pruned out.)
@@ -15,7 +28,7 @@ are shown (JDK internals are pruned out.)
 ## Input & Output
 
 - **Input:** A classpath pointing to a directory of compiled `.class` file or `.jar` file, via the `-classpath` flag.
-- **Output:** A PDF file (written to a system temporarily directory) that opens automatically,
+- **Output:** A PDF file (written to a system temporary directory) that opens automatically,
   showing each application class as a node with directed edges from parent to its subtype.
 
 ---
@@ -34,8 +47,6 @@ are shown (JDK internals are pruned out.)
    which dot
    ```
    or install a package on Windows directly via https://graphviz.org/download/
-
-3. **Python 3** — used by the project's `run.py` runner script.
 
 ### Steps
 
@@ -56,49 +67,68 @@ are shown (JDK internals are pruned out.)
    ./gradlew build
    ```
 
-4. Prepare a sample input, compile a Java file into `targets/classes/`:
+4. Compile the sample input into `targets/classes/`:
    ```
-   javac -d targets/classes targets/src/Bank.java
+   mkdir -p targets/classes
+   javac -d targets/classes targets/classes/Main.java targets/classes/AnalysisClass.java
    ```
 
 5. Run `PDFTypeHierarchy`:
    ```
-   python3 run.py com.ibm.wala.examples.drivers.PDFTypeHierarchy -classpath targets/classes
+   ./gradlew run \
+     -PmainClass=com.ibm.wala.examples.drivers.PDFTypeHierarchy \
+     --args="-classpath targets/classes"
    ```
 
-6. Finally, a PDF file will open automatically in your system's default PDF viewer.
+6. A PDF file will open automatically in your system's default PDF viewer.
 
 ---
 
 ### Sample Input
 
-**Source file:** `targets/src/Bank.java`
-
+**`Main.java`**
 ```java
-public class Bank {
-    private double balance;
+package com.sirisuk;
 
-    public Bank(double initialBalance) {
-        this.balance = initialBalance;
-    }
-
-    public void deposit(double amount) {
-        balance += amount;
-    }
-
-    public void withdraw(double amount) {
-        if (amount <= balance) balance -= amount;
-    }
-
-    public double getBalance() {
-        return balance;
-    }
-
+public class Main {
     public static void main(String[] args) {
-        Bank b = new Bank(1000);
-        b.deposit(500);
-        b.withdraw(200);
-        System.out.println("Balance: " + b.getBalance());
+        AnalysisClass.run();
+    }
+}
+```
+
+**`AnalysisClass.java`**
+```java
+package com.sirisuk;
+
+public class AnalysisClass {
+
+    public static long up(int n) {
+        if (n <= 1) return n;
+        long[] dp = new long[n + 1];
+        dp[0] = 0; dp[1] = 1;
+        for (int i = 2; i <= n; i++) dp[i] = dp[i - 1] + dp[i - 2];
+        return dp[n];
+    }
+
+    private static long[] memo = new long[100];
+
+    public static long down(int n) {
+        if (n <= 1) return n;
+        if (memo[n] != 0) return memo[n];
+        memo[n] = down(n - 1) + down(n - 2);
+        return memo[n];
+    }
+
+    public static void run() {
+        int n = 10;
+        System.out.println("Fibonacci DP Demo (n = " + n + ")");
+        System.out.println("Bottom-up : " + up(n));
+        System.out.println("Top-down  : " + down(n));
+        System.out.println("\nSequence (0.." + n + "):");
+        for (int i = 0; i <= n; i++) {
+            System.out.print(up(i) + (i < n ? " " : "\n"));
+        }
     }
 }
 ```
@@ -108,14 +138,23 @@ public class Bank {
 A PDF diagram opens showing the inheritance chain for application classes only:
 
 ```
-<Primordial,Ljava/lang/Object>
-        |
-        ▼
-<Application,LBank>
+        <Primordial,Ljava/lang/Object>
+                 |              |
+                 ▼              ▼
+<Application,                <Application,
+ Lcom/sirisuk/                Lcom/sirisuk/
+ AnalysisClass>               Main>
 ```
 
-`Bank` has no explicit superclass, so it inherits directly from `java.lang.Object` which is
-the root of all Java classes. The diagram has exactly two nodes and one edge.
+Both `Main` and `AnalysisClass` have no explicit superclass, so they both inherit directly
+from `java.lang.Object` — the root of all Java classes. The diagram has exactly 3 nodes and
+2 edges.
 
-> **Note:** This PDF output is written to a temporary file (e.g. `/tmp/out1228629807.pdf`)
+> **Note:** The PDF is written to a temporary file (e.g. `/tmp/out1228629807.pdf`)
 > and opened automatically. The exact filename changes on every run.
+ 
+---
+
+## Reproducibility
+
+---
