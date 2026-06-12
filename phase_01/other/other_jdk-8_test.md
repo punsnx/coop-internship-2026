@@ -178,6 +178,133 @@ Application,Java,binaryDir,/absolute/path/to/build_dir
 
 ---
 
+### Driver `DemandPointsToDriver`
+
+#### Test Command
+```bash
+ #--- DemandPointsToDriver ---
+"$SCRIPT_DIR/gradlew" -p "$SCRIPT_DIR" run \
+  -PmainClass=com.ibm.wala.examples.drivers.DemandPointsToDriver \
+  --args="$TARGET"
+```
+
+#### Expected Output
+```
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Gradle requires JVM 17 or later to run. Your build is currently configured to use JVM 8.
+```
+
+---
+
+### Driver `ScopeFileCallGraph`
+
+#### Test Command
+
+```bash
+    # --- ScopeFileCallGraph ---
+    "$SCRIPT_DIR/gradlew" -p "$SCRIPT_DIR" run \
+    -PmainClass=com.ibm.wala.examples.drivers.ScopeFileCallGraph \
+    --args="-scopeFile $SCOPE_FILE -mainClass Lcom/example/Main"
+     
+```
+
+#### Expected Output
+```
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Gradle requires JVM 17 or later to run. Your build is currently configured to use JVM 8.
+```
+
+---
+
+### Driver `CSReachingDefsDriver`
+
+#### Test Command
+```bash
+# --- CSReachingDefsDriver ---
+    "$SCRIPT_DIR/gradlew" -p "$SCRIPT_DIR" run \
+      -PmainClass=com.ibm.wala.examples.drivers.CSReachingDefsDriver \
+      --args="-scopeFile $SCOPE_FILE -mainClass LAnalysisClass"  
+```
+
+#### Expected Output
+```
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Gradle requires JVM 17 or later to run. Your build is currently configured to use JVM 8.
+```
+
+---
+
+### Driver `PrintTypeHierachy`
+
+#### Test Command
+```bash
+# --- PrintTypeHierarchy ---
+   "$SCRIPT_DIR/gradlew" -p "$SCRIPT_DIR" run \
+   -PmainClass=com.ibm.wala.examples.drivers.PrintTypeHierarchy \
+     --args="$TARGET"
+```
+
+#### Expected Output
+```
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Gradle requires JVM 17 or later to run. Your build is currently configured to use JVM 8.
+```
+
+---
+
+### Driver `SourceDirCallGraph`
+
+#### Test Command
+```bash
+# --- SourceDirCallGraph ---
+JDK_HOME="${JAVA_HOME:?JAVA_HOME must be set}"
+if [ -d /tmp/wala-stdlib ]; then
+  rm -rf /tmp/wala-stdlib
+fi
+
+if [ ! -f /tmp/wala-stdlib/java.base.jar ]; then
+    echo "Building WALA stdlib cache (one-time)..."
+    mkdir -p /tmp/wala-stdlib/x
+    unzip -q "$JDK_HOME/jmods/java.base.jmod" -d /tmp/wala-stdlib/x || true
+    "$JDK_HOME/bin/jar" cf /tmp/wala-stdlib/java.base.jar \
+        -C /tmp/wala-stdlib/x/classes .
+    rm -rf /tmp/wala-stdlib/x
+fi
+
+if [ ! -f /tmp/wala-stdlib/.libs-ready ]; then
+    echo "Copying WALA + ECJ dependency JARs (one-time)..."
+    find ~/.gradle/caches/modules-2/files-2.1/com.ibm.wala \
+        -name "*.jar" ! -name "*-sources.jar" ! -name "*-javadoc.jar" \
+        -exec cp {} /tmp/wala-stdlib/  \;
+    find ~/.gradle/caches/modules-2/files-2.1/org.eclipse.jdt \
+        -name "*.jar" ! -name "*-sources.jar" ! -name "*-javadoc.jar" \
+        -exec cp {} /tmp/wala-stdlib/ \;
+    touch /tmp/wala-stdlib/.libs-ready
+fi
+
+"$SCRIPT_DIR/gradlew" -p "$SCRIPT_DIR" run \
+  -PmainClass=com.ibm.wala.examples.drivers.SourceDirCallGraph \
+  --args="-sourceDir ../fibo/out-class -mainClass LAnalysisClass"
+```
+
+#### Expected Output
+```
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Gradle requires JVM 17 or later to run. Your build is currently configured to use JVM 8.
+```
+
+---
+
 ### Driver `PDFTypeHierarchy`
 
 #### Test Command
@@ -188,7 +315,6 @@ Application,Java,binaryDir,/absolute/path/to/build_dir
 ```
 
 #### Expected Output
-
 ```
 FAILURE: Build failed with an exception.
 
@@ -196,7 +322,22 @@ FAILURE: Build failed with an exception.
 Gradle requires JVM 17 or later to run. Your build is currently configured to use JVM 8.
 ```
 
-- Result: ❌ FAIL on JDK 1.8.0_492 (Eclipse Temurin, x86_64 via Rosetta)
-- Cause: Gradle 9.x requires JVM 17 or later to run. JDK 8 cannot start the Gradle daemon regardless of the target Java version set in `build.gradle.kts`.
-- Additional note: The installed JDK 8 (Eclipse Temurin) runs under Rosetta 2 on Apple Silicon (`x86_64`) rather than natively (`arm64`), which may cause additional compatibility issues beyond the Gradle version requirement.
-- Fix: Use JDK 17 or higher to run Gradle.
+---
+
+### Driver `ConstructAllIRs`
+
+#### Test Command
+```bash
+# --- ConstructAllIRs ---
+"$SCRIPT_DIR/gradlew" -p "$SCRIPT_DIR" run \
+  -PmainClass=com.ibm.wala.examples.drivers.ConstructAllIRs \
+  --args="$SCOPE_FILE"
+```
+
+#### Expected Output
+```
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Gradle requires JVM 17 or later to run. Your build is currently configured to use JVM 8.
+```

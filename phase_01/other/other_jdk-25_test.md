@@ -200,8 +200,7 @@ BUILD SUCCESSFUL in 1s
     # --- ScopeFileCallGraph ---
     "$SCRIPT_DIR/gradlew" -p "$SCRIPT_DIR" run \
     -PmainClass=com.ibm.wala.examples.drivers.ScopeFileCallGraph \
-    --args="-scopeFile $SCOPE_FILE -mainClass Lcom/example/Main"
-     
+    --args="-scopeFile $SCOPE_FILE -mainClass Lcom/example/Main"  
 ```
 
 #### Expected Output
@@ -233,7 +232,6 @@ Call graph stats:
 
 [com.sirisuk.AnalysisClass.down(I)J]
   --> [app] com.sirisuk.AnalysisClass.down(I)J
-
 ```
 ---
 

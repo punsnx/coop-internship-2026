@@ -504,4 +504,29 @@ Call graph stats:
 
 ## Reproducibility
 
+### Result
+⚠️ PARTIAL PASS
+
+### Observations
+
+I followed instructions with one correction — the `-mainClass` argument in step 6 uses `Lcom/example/Main` as a placeholder, which was replaced with the actual class path `Lcom/sirisuk/Main` to match the fibo sample input.
+
+The build completed successfully and the call graph was constructed. However, the `=== Application Call Graph ===` section shown in expected output did not appear in my run. After checking the source, the extra printing code for the application call graph is present in this version but not in the cloned repository — it may not have been pushed yet.
+
+### Difference from Reference
+
+| Item | Reference | My Run |
+|------|----------------|--------|
+| Build result | ✅ SUCCESS | ✅ SUCCESS |
+| `building call graph...done` | ✅ | ✅ |
+| Call graph stats printed | ✅ | ✅ |
+| `=== Application Call Graph ===` | ✅ Present | ❌ Not printed |
+| Nodes | 8269 | 8280 |
+| Edges | 41059 | 41097 |
+| Methods | 5841 | 5847 |
+| Bytecode Bytes | 411139 | 411731 |
+| Time | 2618ms | 2782ms |
+
+The call graph statistics differ slightly, which is expected across different machines and JDK minor versions. The application call graph section is missing because the extra printing code in this version has not been pushed to the shared repository yet. Once pushed, the output should match fully.
+
 ---

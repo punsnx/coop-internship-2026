@@ -683,4 +683,35 @@ RUNNING TIME: 308
 
 ## Reproducibility
 
+### Result
+⚠️ PARTIAL PASS
+
+### Observations
+
+I followed instructions with one adjustment — `JAVA_HOME` was set to `/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home` as documented, and the build completed successfully.
+
+The core output matched:
+
+```
+building class hierarchy...done
+building IRs...done
+RUNNING TIME: 5171
+```
+
+However, the `=== IR for: ===` blocks shown in expected output did not appear in my run. After checking the local source file, the `System.out.println(ir)` line present in his version is not in the cloned repository, it may not have been pushed yet.
+
+Running time also differed (5171ms vs 308ms in the reference), which is expected across different machines.
+
+### Difference from Reference
+
+| Item | Reference | My Run |
+|------|------------------|--------|
+| Build result | ✅ SUCCESS | ✅ SUCCESS |
+| `building class hierarchy...done` | ✅ | ✅ |
+| `building IRs...done` | ✅ | ✅ |
+| IR blocks printed | ✅ Present | ❌ Not printed |
+| Running time | 308ms | 5171ms |
+
+The IR blocks are missing because the version of `ConstructAllIRs.java` in the repository does not include the `System.out.println(ir)` line shown in document. This is likely a code change that has not been pushed to the shared repository yet. Once pushed, the output should match fully.
+
 ---
