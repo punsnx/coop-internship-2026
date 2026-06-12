@@ -18,7 +18,7 @@
 ## Functionality
 
 `PDFTypeHierarchy` builds a class hierarchy from compiled Java bytecode and renders it as a
-visual diagram in a form of PDF file. It uses Graphviz (`dot`) to convert the hierarchy into a directed graph,
+visual diagram as a PDF file. It uses Graphviz (`dot`) to convert the hierarchy into a directed graph,
 where edges point from parent classes/interfaces to their subtypes, then opens the
 result in the system's default PDF viewer. Only classes loaded by the Application class loader
 are shown (JDK internals are pruned out.)
@@ -28,7 +28,7 @@ are shown (JDK internals are pruned out.)
 ## Input & Output
 
 - **Input:** A classpath pointing to a directory of compiled `.class` file or `.jar` file, via the `-classpath` flag.
-- **Output:** A PDF file (written to a system temporarily directory) that opens automatically,
+- **Output:** A PDF file (written to a system temporary directory) that opens automatically,
   showing each application class as a node with directed edges from parent to its subtype.
 
 ---
