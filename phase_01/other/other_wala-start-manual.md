@@ -22,8 +22,6 @@ This manual documents everything needed to understand, set up, and run the WALA-
 
 ## Project Structure
 
-> **Owner: Sirisuk**
-
 ```
 WALA-start/
 ├── build.gradle.kts          ← Gradle build config
@@ -49,8 +47,6 @@ WALA-start/
 ---
 
 ## Drivers Reference
-
-> **Owner: Sirisuk**
 
 ### drivers/ — Java Analysis
 
@@ -94,8 +90,6 @@ WALA-start/
 
 ## Prerequisites
 
-> **Owner: Prawit**
-
 | Requirement | Detail |
 |-------------|--------|
 | Java 21 | Must be set as `$JAVA_HOME`. Check: `echo $JAVA_HOME` |
@@ -114,8 +108,6 @@ export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home
 
 ## Loading Java Base Library
 
-> **Owner: Napongtorn**
-
 When working with WALA (Whole Program Analysis Library), you often need to include and configure the Java base library, which serves as a foundation for standard classes provided by Oracle's JDK. This section explains how to properly load the Java base library into your WALA setup:
 
 ### Understanding the Importance of the Java Base Library
@@ -127,6 +119,7 @@ The Java base library (`java.base`) contains essential classes and functionaliti
 1. **Set Up Your Environment**: Ensure that your environment is correctly configured to include the Java base library. This might involve setting up properties or environment variables to point to the correct directory where the JAR file of `java.base` is located.
 
 2. **Configuration via Properties File**: Use a configuration file (e.g., `wala.properties`) within your WALA project to specify the path to the Java base library. This can be done by setting the property `java_runtime_dir` to the directory where the JAR file is stored. For example:
+
 ### Additional Context on WALA’s Role in the Java Ecosystem
 
 Beyond its role as a static analysis tool, WALA (Whole Program Analysis Library) plays a pivotal part in bridging the gap between compiled bytecode and runtime execution. This section delves into how WALA contributes to the broader Java ecosystem by enabling advanced analyses that are best performed at the bytecode level:
@@ -142,8 +135,6 @@ By operating at this unique intersection between compilation and runtime executi
 ---
 
 ## How to Run
-
-> **Owner: Napongtorn**
 
 0. **Install JDK 21**
    ```bash
@@ -205,8 +196,6 @@ By operating at this unique intersection between compilation and runtime executi
 
 ## Running Parameters and Switching
 
-> **Owner: Napongtorn**
-
 ### Parameters for each driver
 
 | Driver | Input |
@@ -229,8 +218,6 @@ By operating at this unique intersection between compilation and runtime executi
 ---
 
 ## Scope File Format
-
-> **Owner: Napongtorn**
 
 `scope.txt` is a plain text file with one entry per line:
 
@@ -256,8 +243,6 @@ Application,Java,classFile,/path/to/AnalysisClass.class
 
 ## Configuration Files
 
-> **Owner: Napongtorn**
-
 ### `build.gradle.kts` — notable settings
 
 ```kotlin
@@ -276,8 +261,6 @@ The ECJ pin prevents a `NoSuchMethodError` caused by Gradle upgrading ECJ to an 
 ---
 
 ## Further Understanding: Analyzing a Different Target
-
-> **Owner: Pichaphop**
 
 To analyze a target beyond the standard Java library, WALA needs the full type context of that target — meaning all external dependencies must be provided so it can resolve types and build the class hierarchy. In this example, we use WALA to analyze itself.
 
@@ -488,11 +471,9 @@ Each step enriches the model: CHA knows **what exists**, IR knows **what happens
 
 ## Our Troubleshooting
 
-> **Owner: Prawit**
-
 ### Setup & Environment
 
-### `JAVA_HOME must be set`
+#### `JAVA_HOME must be set`
 
 **Symptom:**
 ```
@@ -508,7 +489,7 @@ Add this line to your `~/.zshrc` or `~/.bashrc` to make it permanent.
 
 ---
 
-### `J2SE_DIR not set`
+#### `J2SE_DIR not set`
 
 **Symptom:**
 ```
@@ -529,7 +510,7 @@ If the file is missing, recreate it with the content above.
 
 ---
 
-### Script stops silently after `"Building WALA stdlib cache..."`
+#### Script stops silently after `"Building WALA stdlib cache..."`
 
 **Symptom:** The script prints `"Building WALA stdlib cache (one-time)..."` and then stops with no error message.
 
@@ -545,7 +526,7 @@ This tells the shell to ignore the non-zero exit from `unzip` and continue.
 
 ### Class Hierarchy & Stdlib
 
-### `ClassHierarchyException: failed to load root Ljava/lang/Object`
+#### `ClassHierarchyException: failed to load root Ljava/lang/Object`
 
 **Symptom:**
 ```
@@ -561,7 +542,7 @@ rm -rf /tmp/wala-stdlib
 
 ---
 
-### `NoSuchMethodError: Scanner.getNextToken`
+#### `NoSuchMethodError: Scanner.getNextToken`
 
 **Symptom:**
 ```
@@ -587,7 +568,7 @@ After editing, re-run with these commands:
 
 ### SourceDirCallGraph — Source & Entry Point Errors
 
-### `could not resolve <Source, LClassName, main>`
+#### `could not resolve <Source, LClassName, main>`
 
 **Symptom:**
 ```
@@ -621,7 +602,7 @@ UNREACHABLE from any entry point
 
 ---
 
-### `UnimplementedError: Unhandled JDT node type ExpressionMethodReference`
+#### `UnimplementedError: Unhandled JDT node type ExpressionMethodReference`
 
 **Symptom:**
 ```

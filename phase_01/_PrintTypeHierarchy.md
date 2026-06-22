@@ -119,7 +119,7 @@
    > echo "java_runtime_dir=/tmp/wala-stdlib" > src/main/resources/wala.properties
    >
    > # Target bytecode
-   >TARGET="$(cd "$SCRIPT_DIR" && realpath "../fibo/out-class/AnalysisClass.class")"
+   > TARGET="$(cd "$SCRIPT_DIR" && realpath "../fibo/out-class/AnalysisClass.class")"
    > 
    > JDK_HOME="${JAVA_HOME:?JAVA_HOME must be set}"
    > 
@@ -134,8 +134,8 @@
    > 
    > # Test script below this section
    > # --- PrintTypeHierarchy ---
-   >"$SCRIPT_DIR/gradlew" -p "$SCRIPT_DIR" run \
-   >-PmainClass=com.ibm.wala.examples.drivers.PrintTypeHierarchy \
+   > "$SCRIPT_DIR/gradlew" -p "$SCRIPT_DIR" run \
+   > -PmainClass=com.ibm.wala.examples.drivers.PrintTypeHierarchy \
    >  --args="$TARGET"
    > ```
    ***JAVA_HOME*** uncomment if you have a different JDK version.
