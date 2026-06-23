@@ -49,3 +49,15 @@ this graph tell the exact sequence of expression evaluations required by a langu
 https://www.geeksforgeeks.org/compiler-design/evaluation-order-for-sdd/
 
 ---
+
+## Points-To Graph
+
+### How it works
+
+Identifies unexpected pointer aliases and isolates memory unsafe zones.
+
+### Source(s)
+
+https://dl.acm.org/doi/pdf/10.1145/504311.504286
+
+---

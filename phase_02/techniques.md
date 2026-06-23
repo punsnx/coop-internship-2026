@@ -50,10 +50,26 @@ https://dl.acm.org/doi/pdf/10.1145/3795883
 
 ---
 
-## 
+## Flow-Insensitive Pointer Analysis
 
 ### How it works
 
+Computes the dataflow for the whole program to find the runtime of the program
+
 ### Source(s)
+
+https://pages.cs.wisc.edu/~fischer/cs701.f14/7.POINTER-ANALYSIS.html
+
+---
+
+## Reaching Definition Analysis
+
+### How it works
+
+Finding uninitialized variable or dead code that isn't used
+
+### Source(s)
+
+https://grokipedia.com/page/Reaching_definition
 
 ---
