@@ -8,7 +8,7 @@
 
 **Class :** `TabulationSolver.java`
 
-**Usage in WALA :** track Summary Edges which allow reusing without recalculating
+**Usage in WALA :** track Summary Edges which allow reusing without recalculating. WALA use these to solve context-sensitive problems that can be represented as graph.
 
 (See [WALA TabulationSolver Javadoc](https://wala.github.io/javadoc/com/ibm/wala/dataflow/IFDS/TabulationSolver.html) and [WALA TabulationSolver GitHub](https://github.com/wala/WALA/blob/master/core/src/main/java/com/ibm/wala/dataflow/IFDS/TabulationSolver.java))
 
@@ -18,7 +18,7 @@
 
 **Class :** `ZeroXCFABuilder.java`
 
-**Usage in WALA :** Computes dataflow on the whole program without considering evaluation order.
+**Usage in WALA :** WALA uses it to build a scalable control-flow graph approximation by tracking what abstract heap objects variable pointers can point to.
 
 (See [WALA ZeroXCFABuilder Javadoc](https://wala.github.io/javadoc/com/ibm/wala/ipa/callgraph/propagation/cfa/ZeroXCFABuilder.html) and [WALA ZeroXCFABuilder GitHub](https://github.com/wala/WALA/blob/master/core/src/main/java/com/ibm/wala/ipa/callgraph/propagation/cfa/ZeroXCFABuilder.java))
 
@@ -28,7 +28,7 @@
 
 **Class :** `ContextInsensitiveReachingDefs.java`
 
-**Usage in WALA :** find where variables are defined and where it can reach to help find dead code.
+**Usage in WALA :** WALA use this to demonstrate how to build dataflow solvers within WALA.
 
 (See [WALA ContextInsensitiveReachingDefs Javadoc](https://wala.github.io/javadoc/com/ibm/wala/examples/analysis/dataflow/ContextInsensitiveReachingDefs.html) and [WALA ContextInsensitiveReachingDefs GitHub](https://github.com/wala/WALA/blob/master/core/src/main/java/com/ibm/wala/examples/analysis/dataflow/ContextInsensitiveReachingDefs.java))
 
