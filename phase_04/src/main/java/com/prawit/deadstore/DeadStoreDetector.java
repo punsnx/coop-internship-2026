@@ -15,10 +15,13 @@ import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SymbolTable;
 import com.ibm.wala.types.ClassLoaderReference;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
 
@@ -47,13 +50,18 @@ public class DeadStoreDetector {
     //    LineNumberTable (line numbers) in the bytecode. Without it, WALA can
     //    still build the IR but every name is lost and every line is -1
     Path classDir = Files.createTempDirectory("deadstore-classes");
+    // Every error path below calls System.exit, so clean up from a shutdown hook
+    // rather than at the end of main, which those paths never reach
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> deleteRecursively(classDir)));
+
     JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
     if (compiler == null) {
       System.out.println("Error: no system Java compiler (run with a JDK, not a JRE).");
       System.exit(1);
     }
 
-    int rc = compiler.run(null, null, null, "-g", "-d", classDir.toString(), source.getAbsolutePath());
+    int rc =
+        compiler.run(null, null, null, "-g", "-d", classDir.toString(), source.getAbsolutePath());
 
     if (rc != 0) {
       System.out.println("Error: failed to compile " + source);
@@ -61,7 +69,8 @@ public class DeadStoreDetector {
     }
 
     // 2. Scope: only the classes we just compiled
-    AnalysisScope scope = AnalysisScopeReader.instance.makeJavaBinaryAnalysisScope(classDir.toString(), null);
+    AnalysisScope scope =
+        AnalysisScopeReader.instance.makeJavaBinaryAnalysisScope(classDir.toString(), null);
 
     // 3. Class hierarchy
     ClassHierarchy cha = ClassHierarchyFactory.make(scope);
@@ -100,6 +109,24 @@ public class DeadStoreDetector {
     }
   }
 
+  /**
+   * Delete the temp class directory, depth first. Best effort: a leftover file must not fail a run
+   */
+  private static void deleteRecursively(Path dir) {
+    try (Stream<Path> paths = Files.walk(dir)) {
+      paths
+          .sorted(Comparator.reverseOrder())
+          .forEach(
+              p -> {
+                try {
+                  Files.deleteIfExists(p);
+                } catch (IOException ignored) {
+                }
+              });
+    } catch (IOException ignored) {
+    }
+  }
+
   /** Walk every value number in the method, not every instruction */
   private static void findDeadStores(IR ir, DefUse du, List<String> out) {
     SymbolTable symbolTable = ir.getSymbolTable();
@@ -121,7 +148,8 @@ public class DeadStoreDetector {
       }
       String name = ir.getLocalNames(nameIndex, v)[0];
 
-      // The LocalVariableTable scope for a local opens immediately after its store, so the store is the preceding instruction
+      // The LocalVariableTable scope for a local opens immediately after its store, so the store is
+      // the preceding instruction
       int line = lineNumberFor(ir, nameIndex - 1);
       out.add("  Variable: " + name + ", Line: " + line);
     }
