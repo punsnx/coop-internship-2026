@@ -17,7 +17,7 @@ being reassigned or the method ends.
 ## Example
 
 ```bash
-./gradlew run --args="test1/test1.java"
+./gradlew run --args="test1/Main.java"
 ```
 
 ## Test Cases
@@ -25,3 +25,5 @@ being reassigned or the method ends.
 - `test1/` — Basic dead store
 - `test2/` — No dead stores
 - `test3/` — Reassignment dead store
+- `test4/` — Complex assignment dead store with if-else, loop, and methods
+- `test5/` — Basic dead store but same values across variables

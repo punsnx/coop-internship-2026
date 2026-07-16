@@ -1,0 +1,7 @@
+No dead stores detected.
+
+#####
+NOTE: This output is incorrect and is recorded deliberately.
+`b` (line 4) is a dead store but is not reported.
+See Limitation.md section 1.
+#####
