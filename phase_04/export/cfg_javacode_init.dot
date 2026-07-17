@@ -1,0 +1,10 @@
+digraph Mapped_JavaCode_CFG {
+  node [shape=box, style=filled, fillcolor=lightyellow, fontname="Courier"];
+  0 [label="ENTRY"];
+  1 [label="Block 1\n-----------------------------\nLine 1"];
+  2 [label="Block 2\n-----------------------------\nLine 1"];
+  3 [label="EXIT"];
+  0 -> 1;
+  1 -> 2;
+  2 -> 3;
+}

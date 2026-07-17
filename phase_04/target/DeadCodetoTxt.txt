@@ -1,0 +1,36 @@
+Compiled from "DeadCode.java"
+public class DeadCode {
+  public DeadCode();
+    Code:
+       0: aload_0
+       1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+       4: return
+
+  public static int getActiveValue();
+    Code:
+       0: bipush        10
+       2: ireturn
+
+  public static int getDeadValue();
+    Code:
+       0: bipush        20
+       2: ireturn
+
+  public static void main(java.lang.String[]);
+    Code:
+       0: invokestatic  #7                  // Method getActiveValue:()I
+       3: istore_1
+       4: invokestatic  #13                 // Method getDeadValue:()I
+       7: istore_2
+       8: getstatic     #16                 // Field java/lang/System.out:Ljava/io/PrintStream;
+      11: iload_1
+      12: invokevirtual #22                 // Method java/io/PrintStream.println:(I)V
+      15: invokestatic  #7                  // Method getActiveValue:()I
+      18: istore_3
+      19: invokestatic  #13                 // Method getDeadValue:()I
+      22: istore_3
+      23: getstatic     #16                 // Field java/lang/System.out:Ljava/io/PrintStream;
+      26: iload_3
+      27: invokevirtual #22                 // Method java/io/PrintStream.println:(I)V
+      30: return
+}
