@@ -1,0 +1,6 @@
+Dead store detected:
+  Field: outsider, Line: 25
+  Parameter: meow, Line: 22
+  Variable: unusedInCompute, Line: 3
+  Variable: x, Line: 12
+  Variable: dead, Line: 34

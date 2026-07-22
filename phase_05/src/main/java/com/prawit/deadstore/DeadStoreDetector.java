@@ -11,10 +11,12 @@ import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
 import com.ibm.wala.ssa.DefUse;
 import com.ibm.wala.ssa.IR;
-import com.ibm.wala.ssa.SSAAbstractInvokeInstruction;
+import com.ibm.wala.ssa.SSAGetInstruction;
 import com.ibm.wala.ssa.SSAInstruction;
+import com.ibm.wala.ssa.SSAPutInstruction;
 import com.ibm.wala.ssa.SymbolTable;
 import com.ibm.wala.types.ClassLoaderReference;
+import com.ibm.wala.types.FieldReference;
 import com.ibm.wala.types.MethodReference;
 import java.io.File;
 import java.io.IOException;
@@ -24,7 +26,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -53,9 +54,6 @@ public class DeadStoreDetector {
     }
 
     // 1. Compile the .java file to .class in a temp directory
-    //    "-g is required!" It keeps the LocalVariableTable (variable names) and
-    //    LineNumberTable (line numbers) in the bytecode. Without it, WALA can
-    //    still build the IR but every name is lost and every line is -1
     Path classDir = Files.createTempDirectory("deadstore-classes");
     // Every error path below calls System.exit, so clean up from a shutdown hook
     // rather than at the end of main, which those paths never reach
@@ -75,25 +73,22 @@ public class DeadStoreDetector {
       System.exit(1);
     }
 
-    // 2. Scope: only the classes we just compiled
-    AnalysisScope scope =
-        AnalysisScopeReader.instance.makeJavaBinaryAnalysisScope(classDir.toString(), null);
+    // 2. Scope only the classes we just compiled)
+    AnalysisScope scope = AnalysisScopeReader.instance.makeJavaBinaryAnalysisScope(classDir.toString(), null);
 
     // 3. Class hierarchy
     ClassHierarchy cha = ClassHierarchyFactory.make(scope);
 
     IAnalysisCacheView cache = new AnalysisCacheImpl();
 
-    // 4. Find parameters that are never read, then repeat until the set stops growing
-    //    A value passed into an unused parameter accomplishes nothing, so the store
-    //    feeding it is dead too, which can in turn make another parameter unused
+    // 4. Find parameters that are never read
     Map<MethodReference, Set<Integer>> unusedParams = findUnusedParameters(cha, cache);
     if (debug) {
       dumpUnusedParameters(unusedParams, cha, cache);
     }
 
     // 5. Build the SSA IR for each application method and inspect it
-    List<String> deadStores = new ArrayList<>();
+    List<Finding> deadStores = new ArrayList<>();
 
     for (IClass klass : cha) {
       if (!klass.getClassLoader().getReference().equals(ClassLoaderReference.Application)) {
@@ -112,22 +107,56 @@ public class DeadStoreDetector {
         if (debug) {
           dumpIR(ir, du);
         }
-        findDeadStores(ir, du, unusedParams, cha, deadStores);
+        findDeadStores(ir, du, deadStores);
       }
     }
 
-    // 6. Report
+    // Unused parameters are reported as dead stores too (Phase 5)
+    reportUnusedParameters(unusedParams, cha, cache, deadStores);
+    // Unused fields are reported as dead stores too (Phase 5)
+    reportUnusedFields(cha, cache, deadStores);
+
+    // 6. Report, sorted by category (Field, Parameter, Variable) then line
     if (deadStores.isEmpty()) {
       System.out.println("No dead stores detected.");
     } else {
+      deadStores.sort(
+          Comparator.comparingInt((Finding f) -> f.category.order).thenComparingInt(f -> f.line));
       System.out.println("Dead store detected:");
-      deadStores.forEach(System.out::println);
+      for (Finding f : deadStores) {
+        System.out.println("  " + f.category.label + ": " + f.name + ", Line: " + f.line);
+      }
     }
   }
 
-  /**
-   * Delete the temp class directory, depth first. Best effort: a leftover file must not fail a run
-   */
+  /** A single dead-store finding: what kind of thing, its name, and its line */
+  private enum Category {
+    FIELD("Field", 0),
+    PARAMETER("Parameter", 1),
+    VARIABLE("Variable", 2);
+
+    final String label;
+    final int order;
+
+    Category(String label, int order) {
+      this.label = label;
+      this.order = order;
+    }
+  }
+
+  private static final class Finding {
+    final Category category;
+    final String name;
+    final int line;
+
+    Finding(Category category, String name, int line) {
+      this.category = category;
+      this.name = name;
+      this.line = line;
+    }
+  }
+
+  /** Delete the temp class directory, depth first. Best effort: a leftover file must not fail a run */
   private static void deleteRecursively(Path dir) {
     try (Stream<Path> paths = Files.walk(dir)) {
       paths
@@ -143,125 +172,48 @@ public class DeadStoreDetector {
     }
   }
 
-  /**
-   * Find, for each application method, which parameter positions are never read
-   *
-   * <p>Repeats until the set stops growing. One round is not enough: discounting a use can make a
-   * caller's parameter unused, which can make its caller's parameter unused, and so on
-   *
-   * <p>The set starts empty and only grows, so this terminates. Starting empty also means a
-   * recursive method whose parameter is only passed to itself stays "used", which is the safe
-   * answer
-   */
+  /** Find, for each application method, which parameter positions are never ready */
   private static Map<MethodReference, Set<Integer>> findUnusedParameters(
       ClassHierarchy cha, IAnalysisCacheView cache) {
 
     Map<MethodReference, Set<Integer>> result = new HashMap<>();
 
-    boolean changed = true;
-    while (changed) {
-      changed = false;
-
-      for (IClass klass : cha) {
-        if (!klass.getClassLoader().getReference().equals(ClassLoaderReference.Application)) {
-          continue; // skip the JDK
+    for (IClass klass : cha) {
+      if (!klass.getClassLoader().getReference().equals(ClassLoaderReference.Application)) {
+        continue; // skip the JDK
+      }
+      for (IMethod method : klass.getDeclaredMethods()) {
+        if (method.isAbstract() || method.isNative()) {
+          continue;
         }
-        for (IMethod method : klass.getDeclaredMethods()) {
-          if (method.isAbstract() || method.isNative()) {
-            continue;
-          }
-          IR ir = cache.getIR(method);
-          if (ir == null) {
-            continue;
-          }
-          DefUse du = new DefUse(ir);
+        IR ir = cache.getIR(method);
+        if (ir == null) {
+          continue;
+        }
+        DefUse du = new DefUse(ir);
 
-          // Position 0 of an instance method is `this`. A receiver cannot be removed
-          // from a call, so discounting it would be meaningless
-          int start = method.isStatic() ? 0 : 1;
+        Set<Integer> unused = new HashSet<>();
 
-          for (int pos = start; pos < ir.getNumberOfParameters(); pos++) {
-            Set<Integer> known = result.get(method.getReference());
-            if (known != null && known.contains(pos)) {
-              continue; // already found in an earlier round
-            }
-            int v = ir.getParameter(pos);
-            if (isEffectivelyUnused(v, du, result, cha)) {
-              result.computeIfAbsent(method.getReference(), k -> new HashSet<>()).add(pos);
-              changed = true;
-            }
+        // Position 0 of an instance method is `this`. A receiver is not a source-level parameter, so skip it
+        int start = method.isStatic() ? 0 : 1;
+
+        for (int pos = start; pos < ir.getNumberOfParameters(); pos++) {
+          int v = ir.getParameter(pos);
+          if (du.isUnused(v)) {
+            unused.add(pos);
           }
+        }
+
+        if (!unused.isEmpty()) {
+          result.put(method.getReference(), unused);
         }
       }
     }
     return result;
   }
 
-  /**
-   * True if this value never affects what the program does
-   *
-   * <p>Stronger than DefUse.isUnused, which only asks whether a use exists. A value read only to be
-   * passed into a parameter nobody reads has a use, but that use accomplishes nothing
-   */
-  private static boolean isEffectivelyUnused(
-      int v, DefUse du, Map<MethodReference, Set<Integer>> unusedParams, ClassHierarchy cha) {
-
-    if (du.isUnused(v)) {
-      return true; // no uses at all
-    }
-
-    Iterator<SSAInstruction> uses = du.getUses(v);
-    while (uses.hasNext()) {
-      if (!isDiscountableUse(v, uses.next(), unusedParams, cha)) {
-        return false; // a use that matters
-      }
-    }
-    return true; // every use was discountable
-  }
-
-  /** True if this use is a call handing the value to a parameter nobody reads */
-  private static boolean isDiscountableUse(
-      int v,
-      SSAInstruction use,
-      Map<MethodReference, Set<Integer>> unusedParams,
-      ClassHierarchy cha) {
-
-    if (!(use instanceof SSAAbstractInvokeInstruction)) {
-      return false; // any other use is a real one
-    }
-    SSAAbstractInvokeInstruction call = (SSAAbstractInvokeInstruction) use;
-
-    IMethod callee = cha.resolveMethod(call.getDeclaredTarget());
-    if (callee == null) {
-      return false; // callee outside the scope, assume the argument matters
-    }
-    Set<Integer> unused = unusedParams.get(callee.getReference());
-    if (unused == null) {
-      return false; // no unused parameters on the callee
-    }
-
-    // The value may be passed at more than one position, as in g(a, a).
-    // Every position it occupies must be an unused parameter
-    boolean found = false;
-    for (int pos = 0; pos < call.getNumberOfPositionalParameters(); pos++) {
-      if (call.getUse(pos) == v) {
-        found = true;
-        if (!unused.contains(pos)) {
-          return false;
-        }
-      }
-    }
-    return found;
-  }
-
   /** Walk every value number in the method, not every instruction */
-  private static void findDeadStores(
-      IR ir,
-      DefUse du,
-      Map<MethodReference, Set<Integer>> unusedParams,
-      ClassHierarchy cha,
-      List<String> out) {
-
+  private static void findDeadStores(IR ir, DefUse du, List<Finding> out) {
     SymbolTable symbolTable = ir.getSymbolTable();
 
     for (int v = 1; v <= symbolTable.getMaxValueNumber(); v++) {
@@ -269,8 +221,8 @@ public class DeadStoreDetector {
       if (v <= ir.getNumberOfParameters()) {
         continue;
       }
-      if (!isEffectivelyUnused(v, du, unusedParams, cha)) {
-        continue; // read somewhere that matters -> alive
+      if (!du.isUnused(v)) {
+        continue; // read somewhere -> alive
       }
 
       // A value only counts as a source-level dead store if it has a source name
@@ -284,7 +236,7 @@ public class DeadStoreDetector {
       // The LocalVariableTable scope for a local opens immediately after its store, so the store is
       // the preceding instruction
       int line = lineNumberFor(ir, nameIndex - 1);
-      out.add("  Variable: " + name + ", Line: " + line);
+      out.add(new Finding(Category.VARIABLE, name, line));
     }
   }
 
@@ -300,6 +252,18 @@ public class DeadStoreDetector {
     return -1;
   }
 
+  /** Source line of a method's declaration, used for its parameters */
+  private static int parameterLine(IMethod method) {
+    if (!(method instanceof IBytecodeMethod)) {
+      return -1;
+    }
+    try {
+      return ((IBytecodeMethod<?>) method).getLineNumber(0);
+    } catch (Exception e) {
+      return -1;
+    }
+  }
+
   /** Map an instruction index back to a source line number via the bytecode "LineNumberTable" */
   private static int lineNumberFor(IR ir, int instructionIndex) {
     IMethod method = ir.getMethod();
@@ -313,6 +277,106 @@ public class DeadStoreDetector {
     } catch (Exception e) {
       return -1;
     }
+  }
+
+  /** Report each unused parameter as a dead store */
+  private static void reportUnusedParameters(
+      Map<MethodReference, Set<Integer>> unusedParams,
+      ClassHierarchy cha,
+      IAnalysisCacheView cache,
+      List<Finding> out) {
+
+    // Walk the methods directly and match by reference. Resolving a bare
+    // MethodReference back to an IMethod is unreliable for private/instance
+    // methods, so instead reuse the same iteration that built the map
+    for (IClass klass : cha) {
+      if (!klass.getClassLoader().getReference().equals(ClassLoaderReference.Application)) {
+        continue;
+      }
+      for (IMethod method : klass.getDeclaredMethods()) {
+        Set<Integer> positions = unusedParams.get(method.getReference());
+        if (positions == null) {
+          continue;
+        }
+        IR ir = cache.getIR(method);
+        if (ir == null) {
+          continue;
+        }
+
+        boolean isMain =
+            method.getName().toString().equals("main")
+                && method.getDescriptor().toString().equals("([Ljava/lang/String;)V");
+
+        for (int pos : positions) {
+          if (isMain) {
+            continue; // args of the entry point is contractually required
+          }
+          String[] names = ir.getLocalNames(0, ir.getParameter(pos));
+          if (names == null || names.length == 0 || names[0] == null) {
+            continue; // synthetic parameter with no source name
+          }
+          if (names[0].startsWith("this$")) {
+            continue; // synthetic outer-class reference on an inner class constructor
+          }
+          int line = parameterLine(method);
+          out.add(new Finding(Category.PARAMETER, names[0], line));
+        }
+      }
+    }
+  }
+
+  /** Report each field that is written but never read */
+  private static void reportUnusedFields(
+      ClassHierarchy cha, IAnalysisCacheView cache, List<Finding> out) {
+
+    // field -> (line of its first write). A field is a candidate until proven read
+    Map<FieldReference, Integer> written = new HashMap<>();
+    Set<FieldReference> read = new HashSet<>();
+
+    for (IClass klass : cha) {
+      if (!klass.getClassLoader().getReference().equals(ClassLoaderReference.Application)) {
+        continue;
+      }
+      for (IMethod method : klass.getDeclaredMethods()) {
+        if (method.isAbstract() || method.isNative()) {
+          continue;
+        }
+        IR ir = cache.getIR(method);
+        if (ir == null) {
+          continue;
+        }
+
+        SSAInstruction[] instructions = ir.getInstructions();
+        for (int i = 0; i < instructions.length; i++) {
+          SSAInstruction inst = instructions[i];
+          if (inst instanceof SSAPutInstruction) {
+            FieldReference f = ((SSAPutInstruction) inst).getDeclaredField();
+            if (isApplicationField(f, cha)) {
+              written.putIfAbsent(f, lineNumberFor(ir, i));
+            }
+          } else if (inst instanceof SSAGetInstruction) {
+            FieldReference f = ((SSAGetInstruction) inst).getDeclaredField();
+            if (isApplicationField(f, cha)) {
+              read.add(f);
+            }
+          }
+        }
+      }
+    }
+
+    written.forEach(
+        (field, line) -> {
+          if (!read.contains(field)) {
+            out.add(new Finding(Category.FIELD, field.getName().toString(), line));
+          }
+        });
+  }
+
+  /** True if the field is declared in application code, not the JDK */
+  private static boolean isApplicationField(FieldReference field, ClassHierarchy cha) {
+    IClass declaring = cha.lookupClass(field.getDeclaringClass());
+    return declaring != null
+        && declaring.getClassLoader().getReference().equals(ClassLoaderReference.Application);
   }
 
   /** Diagnostic: print which parameter of which method is never read */

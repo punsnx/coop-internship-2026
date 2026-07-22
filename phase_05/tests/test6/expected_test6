@@ -1,0 +1,7 @@
+Dead store detected:
+  Field: outerField, Line: 3
+  Field: innerField, Line: 6
+  Field: topField, Line: 18
+  Parameter: innerPar, Line: 9
+  Parameter: outerPar, Line: 14
+  Variable: local, Line: 21

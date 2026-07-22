@@ -1,0 +1,6 @@
+Dead store detected:
+  Field: myNestedField, Line: 5
+  Field: myField, Line: 12
+  Parameter: myPar1, Line: 8
+  Parameter: myPar2, Line: 21
+  Variable: myVar2, Line: 15
