@@ -16,7 +16,7 @@
 
 **What it is:** Assign program variables to CPU registers by modeling variable interference as a graph and finding a valid **k-coloring** (where **k** is the number of available registers).
 
-**Key idea:** Build an interference graph where nodes are variables and edges connect variables that are live simultaneously. If two variables never live together, they can share a register (same color). The problem reduces to graph coloring. Common algorithms include **Greedy** (iterative assignment), **DSatur** (highest saturation degree first), and **RLF** (recursive largest first).
+**Key idea:** In the interference graph, each variable becomes a node, and edges connect variables that are live at the same time. If two variables never exist together, they can share a register. This becomes a graph coloring problem. Common approaches are **Greedy** (color iteratively), **DSatur** (pick the most constrained node first), and **RLF** (color largest independent sets).
 
 ```
 Example:
@@ -43,7 +43,7 @@ Example:
 
 **What it is:** Replace expensive operations (multiplication, division) with cheaper ones (addition, bit shifts) by exploiting algebraic identities and loop structure.
 
-**Key idea:** Common operations inside loops can be rewritten. For example, `i * 4` becomes `i << 2` (left shift by 2 = multiply by 4). Within induction variables, `i * k` in an inner loop can be replaced with an incremental update: instead of recalculating the product each iteration, maintain a running value that increments by `k` each step. This trades one multiply per iteration for one add.
+**Key idea:** Operations inside loops often get rewritten to cheaper forms. For instance, `i * 4` becomes `i << 2` (left shift). For induction variables like `i * k` in a loop, instead of recalculating the product every iteration, keep a running sum that increments by `k`. This replaces an expensive multiply with a cheap add each iteration.
 
 **When used:** Loop optimization; reduces wall-clock time especially in tight loops with millions of iterations.
 
@@ -59,7 +59,7 @@ Example:
 
 **What it is:** Use **abstract interpretation** to track value bounds at each program point; compute the possible range `[lo, hi]` that each variable can hold.
 
-**Key idea:** Instead of tracking exact values (infeasible for large programs), track interval ranges. For example, after `x = read_user_input()`, deduce `x ∈ [0, 100]` from input constraints. Propagate these bounds through assignments and branches. To ensure termination, use a **widening operator** (widen to infinity early) followed by **narrowing** (iteratively refine). This is a form of **abstract domain** lattice.
+**Key idea:** Tracking exact values doesn't scale for real programs, so instead we track ranges. After `x = read_user_input()`, we might deduce `x ∈ [0, 100]` from the input constraints. These bounds propagate through code — assignments tighten them, branches split them. To reach a fixpoint without infinite loops, we use **widening** to jump quickly to a safe upper bound, then **narrowing** to refine back down. The result is an abstract representation of the program's possible values.
 
 ```
 x = 1           x ∈ [1, 1]
