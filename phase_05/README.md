@@ -75,13 +75,15 @@ Each test directory holds the input (`Main.java`) and the tool's output
 
 | Test | Scenario | Result |
 |------|----------|--------|
+| `mohammad/` | The Phase 5 specification example | fields + parameters + local |
 | `test1/` | Basic dead store | one local |
 | `test2/` | No dead stores | none |
 | `test3/` | Reassignment before use | one local |
 | `test4/` | Branches, loop, unused field and parameter | field + parameter + locals |
 | `test5/` | Two locals sharing a literal | known false negative |
 | `test6/` | Class nested inside a nested class | fields + parameters + local |
-| `mohammad/` | The Phase 5 specification example | fields + parameters + local |
+| `test7/` | A used field alongside an unused one | only the unused field |
+| `test8/` | Static nested class | field + parameter + local |
 
 ## Limitations
 
