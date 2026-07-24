@@ -1,99 +1,83 @@
 package com.ibm.wala.examples.drivers;
 
-import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-
 import com.ibm.wala.classLoader.IBytecodeMethod;
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
-import com.ibm.wala.core.util.config.AnalysisScopeReader; // Modern WALA package
 import com.ibm.wala.ipa.callgraph.AnalysisCacheImpl;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
-import com.ibm.wala.ipa.cfg.ExceptionPrunedCFG;
+import com.ibm.wala.core.util.config.AnalysisScopeReader;
 import com.ibm.wala.ipa.cfg.PrunedCFG;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyFactory;
-import com.ibm.wala.shrike.shrikeBT.IInstruction; // WALA Shrike instruction set
 import com.ibm.wala.ssa.IR;
 import com.ibm.wala.ssa.ISSABasicBlock;
 import com.ibm.wala.ssa.SSACFG;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.types.ClassLoaderReference;
 import com.ibm.wala.types.TypeReference;
-import com.ibm.wala.util.graph.Graph;
+import com.ibm.wala.ipa.cfg.ExceptionPrunedCFG;
+import com.ibm.wala.shrike.shrikeBT.IInstruction;
 import com.ibm.wala.util.graph.impl.SlowSparseNumberedGraph;
+
+import java.io.*;
+import java.util.*;
 
 public class WalaCFGGenerator {
 
     private static final List<String> sourceCodeLines = new ArrayList<>();
 
-    // Block for translated data SSA IR
     public static class BytecodeBlock {
         private final int id;
         private final List<String> instructions = new ArrayList<>();
         private final Set<Integer> lines = new TreeSet<>();
-        private final boolean isEntry;
-        private final boolean isExit;
+        private boolean isEntry = false;
+        private boolean isExit = false;
 
-        public BytecodeBlock(int id, boolean isEntry, boolean isExit) {
-            this.id = id;
-            this.isEntry = isEntry;
-            this.isExit = isExit;
-        }
+        public BytecodeBlock(int id,boolean isEntry,boolean isExit) {this.id = id; this.isEntry = isEntry; this.isExit = isExit;}
 
-        public void addInstruction(String instText) {
-            this.instructions.add(instText);
+        public void addInstruction(String inst) {
+            this.instructions.add(inst);
         }
 
         public void addLine(int line) {
-            if (line > 0) {
-                this.lines.add(line);
-            }
+            this.lines.add(line);
         }
 
         public int getId() { return id; }
         public List<String> getInstructions() { return instructions; }
         public Set<Integer> getLines() { return lines; }
         public boolean isEntry() { return isEntry; }
+        public void setEntry(boolean entry) { isEntry = entry; }
         public boolean isExit() { return isExit; }
+        public void setExit(boolean exit) { isExit = exit; }
 
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (!(o instanceof BytecodeBlock)) return false;
             BytecodeBlock that = (BytecodeBlock) o;
-            return this.id == that.id;
+            return id == that.id;
         }
 
         @Override
         public int hashCode() {
-            return Integer.hashCode(id);
+            return Objects.hash(id);
         }
     }
 
-    // Block for translated data from bytecode
     public static class JavaCodeBlock {
         private final int id;
         private final Set<Integer> lines = new TreeSet<>();
-        private final boolean isEntry;
-        private final boolean isExit;
+        private boolean isEntry = false;
+        private boolean isExit = false;
 
-        public JavaCodeBlock(int id, boolean isEntry, boolean isExit) {
+        public JavaCodeBlock(int id, Set<Integer> lines, boolean isEntry, boolean isExit) {
             this.id = id;
+            if (lines!= null) {
+                this.lines.addAll(lines);
+            }
             this.isEntry = isEntry;
             this.isExit = isExit;
-        }
-
-        public void addLine(int line) {
-            if (line > 0) {
-                lines.add(line);
-            }
         }
 
         public int getId() { return id; }
@@ -106,93 +90,113 @@ public class WalaCFGGenerator {
             if (this == o) return true;
             if (!(o instanceof JavaCodeBlock)) return false;
             JavaCodeBlock that = (JavaCodeBlock) o;
-            return this.id == that.id;
+            return id == that.id;
         }
 
         @Override
         public int hashCode() {
-            return Integer.hashCode(id);
+            return Objects.hash(id);
         }
     }
 
     public static void main(String[] args) {
         if (args.length < 2) {
-            System.out.println("Usage: java WalaCFGGenerator <classpath-jar-or-dir> <JVM-class-name> [optional-source-java-file]");
-            System.out.println("Example: java WalaCFGGenerator target/classes Lcom/example/Target src/com/example/Target.java");
-            return;
+            System.err.println("Usage: java WalaCFGGenerator2 <classpath> <main-class> [source-file-path]");
+            System.exit(1);
         }
 
         String classpath = args[0];
         String className = args[1];
+        String sourceFilePath = args[2];
 
-        if (args.length >= 3) {
-            loadSourceCode(args[2]);
-        } else {
-            System.out.println("Notice: No Java source file supplied. Exported nodes will show lines without source code text.");
+        if (sourceFilePath!= null) {
+            loadSourceCode(sourceFilePath);
         }
 
         try {
-            // Set up Analysis Scope and Class Hierarchy
-            System.out.println("Initializing Analysis Scope with classpath: " + classpath);
             AnalysisScope scope = AnalysisScopeReader.instance.makeJavaBinaryAnalysisScope(classpath, null);
-
-            System.out.println("Building Class Hierarchy...");
             ClassHierarchy cha = ClassHierarchyFactory.make(scope);
-
-            // Locate target class
             TypeReference typeRef = TypeReference.findOrCreate(ClassLoaderReference.Application, className);
-            IClass targetClass = cha.lookupClass(typeRef);
-            if (targetClass == null) {
-                System.err.println("Error: Target class not found inside ClassHierarchy: " + className);
-                return;
+            IClass klass = cha.lookupClass(typeRef);
+
+            if (klass == null) {
+                System.err.println("Class not found in hierarchy: " + className);
+                System.exit(1);
             }
 
-            System.out.println("Successfully resolved class: " + targetClass.getName());
-            AnalysisCacheImpl cache = new AnalysisCacheImpl();
+            File exportDir = new File("export");
+            if (!exportDir.exists()) {
+                exportDir.mkdirs();
+            }
 
-            // Loop over every declared method in the class
-            for (IMethod targetMethod : targetClass.getDeclaredMethods()) {
-                if (!(targetMethod instanceof IBytecodeMethod)) {
+            for (IMethod method : klass.getDeclaredMethods()) {
+                if (!(method instanceof IBytecodeMethod)) {
                     continue;
                 }
 
-                IBytecodeMethod bytecodeMethod = (IBytecodeMethod) targetMethod;
-                String rawMethodName = targetMethod.getName().toString();
-                String cleanMethodName = rawMethodName.replace("<", "").replace(">", "");
-                System.out.println(">>> Processing Method: " + targetMethod.getSignature());
-                String directory = "export/";
+                IBytecodeMethod bytecodeMethod = (IBytecodeMethod) method;
+                String methodName = method.getName().toString().replace("<", "").replace(">", "");
+                System.out.println("Processing Method: " + methodName);
 
-                // 1. Generate SSA IR CFG
-                IR ir = cache.getIR(targetMethod);
-                if (ir == null) continue;
+                AnalysisCacheImpl cache = new AnalysisCacheImpl();
+                IR ir = cache.getIR(method);
+                if (ir == null) {
+                    continue;
+                }
+
                 SSACFG ssaCFG = ir.getControlFlowGraph();
-                PrunedCFG<SSAInstruction, ISSABasicBlock> prunedCFG = ExceptionPrunedCFG.make(ssaCFG);
-                exportSsaCFGToDot(prunedCFG, directory + "cfg_ssa_" + cleanMethodName + ".dot");
+                PrunedCFG prunedSsaCFG = ExceptionPrunedCFG.make(ssaCFG);
 
-                // 2. Generate Bytecode CFG by mapping directly from the SSACFG
-                Graph<BytecodeBlock> bytecodeCFG = mapSsaToBytecodeCFG(prunedCFG, bytecodeMethod);
-                exportBytecodeCFGToDot(bytecodeCFG, directory + "cfg_bytecode_" + cleanMethodName + ".dot");
+                // Step 1: Export Pruned SSA CFG
+                String ssaDotPath = "export/cfg_ssa_" + methodName + ".dot";
+                exportSsaCFGToDot(prunedSsaCFG, ssaDotPath);
+                convertDotToPdf(ssaDotPath, "export/cfg_ssa_" + methodName + ".pdf");
 
-                // 3. Generate Source-level Java Code CFG by mapping from the newly created Bytecode CFG
-                Graph<JavaCodeBlock> javaCodeCFG = mapBytecodeToJavaCodeCFG(bytecodeCFG);
-                exportJavaCodeCFGToDot(javaCodeCFG, directory + "cfg_javacode_" + cleanMethodName + ".dot");
+                // Step 2: Map SSA to Bytecode CFG
+                SlowSparseNumberedGraph<BytecodeBlock> bytecodeCFG = mapSsaToBytecodeCFG(prunedSsaCFG, bytecodeMethod);
+                String bytecodeDotPath = "export/cfg_bytecode_" + methodName + ".dot";
+                exportBytecodeCFGToDot(bytecodeCFG, bytecodeDotPath);
+                convertDotToPdf(bytecodeDotPath, "export/cfg_bytecode_" + methodName + ".pdf");
 
-                convertDotToPdf(directory + "cfg_ssa_" + cleanMethodName + ".dot",directory + "cfg_ssa_" + cleanMethodName + ".pdf");
-                convertDotToPdf(directory + "cfg_bytecode_" + cleanMethodName + ".dot",directory + "cfg_bytecode_" + cleanMethodName + ".pdf");
-                convertDotToPdf(directory + "cfg_javacode_" + cleanMethodName + ".dot",directory + "cfg_javacode_" + cleanMethodName + ".pdf");
+                // Step 3: Map Bytecode to Consolidating Java CFG
+                SlowSparseNumberedGraph<JavaCodeBlock> javaCFG = mapBytecodeToJavaCodeCFG(bytecodeCFG);
+                javaCFG = coalesceStraightLineBlocks(javaCFG);
+                String javaDotPath = "export/cfg_javacode_" + methodName + ".dot";
+                exportJavaCodeCFGToDot(javaCFG, javaDotPath);
+                convertDotToPdf(javaDotPath, "export/cfg_javacode_" + methodName + ".pdf");
             }
-
-            System.out.println("Whole class CFG mapping pipeline completed successfully.");
 
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private static Graph<BytecodeBlock> mapSsaToBytecodeCFG(PrunedCFG ssaCFG, IBytecodeMethod bytecodeMethod) {
+    private static void loadSourceCode(String filepath) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(filepath))) {
+            String line;
+            while ((line = reader.readLine())!= null) {
+                sourceCodeLines.add(line);
+            }
+        } catch (IOException e) {
+            System.err.println("Warning: Unable to load source file: " + filepath);
+        }
+    }
+
+    private static String getSourceLineText(int lineNum) {
+        int index = lineNum - 1;
+        if (index >= 0 && index < sourceCodeLines.size()) {
+            return sourceCodeLines.get(index).trim();
+        }
+        return "Line " + lineNum;
+    }
+
+    private static SlowSparseNumberedGraph<BytecodeBlock> mapSsaToBytecodeCFG(
+            PrunedCFG ssaCFG, IBytecodeMethod bytecodeMethod) {
+
         SlowSparseNumberedGraph<BytecodeBlock> bytecodeCFG = SlowSparseNumberedGraph.make();
         Map<ISSABasicBlock, BytecodeBlock> ssaToBytecodeMap = new HashMap<>();
 
+        // Create Nodes
         IInstruction[] rawInstructions = null;
         try {
             rawInstructions = (IInstruction[]) bytecodeMethod.getInstructions();
@@ -247,107 +251,196 @@ public class WalaCFGGenerator {
         return bytecodeCFG;
     }
 
-    private static Graph<JavaCodeBlock> mapBytecodeToJavaCodeCFG(Graph<BytecodeBlock> bytecodeCFG) {
-        SlowSparseNumberedGraph<JavaCodeBlock> javaCodeCFG = SlowSparseNumberedGraph.make();
-        Map<BytecodeBlock, JavaCodeBlock> bcToJavaMap = new HashMap<>();
+    private static SlowSparseNumberedGraph<JavaCodeBlock> mapBytecodeToJavaCodeCFG(
+            SlowSparseNumberedGraph<BytecodeBlock> bytecodeCFG) {
 
-        // 1. Create Java Code Blocks, skipping completely empty ones unless they are Entry/Exit
-        for (Iterator<BytecodeBlock> it = bytecodeCFG.iterator(); it.hasNext(); ) {
-            BytecodeBlock bcBlock = it.next();
+        SlowSparseNumberedGraph<JavaCodeBlock> javaCFG = SlowSparseNumberedGraph.make();
 
-            // Skip synthetic bytecode blocks that don't map to real code
-            if (!bcBlock.isEntry() && !bcBlock.isExit() && bcBlock.getLines().isEmpty()) {
-                continue;
+        // Maps used to track collapsed nodes
+        Map<Set<Integer>, JavaCodeBlock> normalBlocksMap = new HashMap<>();
+        Map<BytecodeBlock, JavaCodeBlock> bytecodeToJavaMap = new HashMap<>();
+
+        JavaCodeBlock entryBlock = null;
+        JavaCodeBlock exitBlock = null;
+
+        // Phase 1: Determine active blocks and partition them by equivalence classes
+        for (BytecodeBlock b : bytecodeCFG) {
+            if (b.isEntry()) {
+                if (entryBlock == null) {
+                    entryBlock = new JavaCodeBlock(b.getId(), new TreeSet<>(), true, false);
+                    javaCFG.addNode(entryBlock);
+                }
+                bytecodeToJavaMap.put(b, entryBlock);
+            } else if (b.isExit()) {
+                if (exitBlock == null) {
+                    exitBlock = new JavaCodeBlock(b.getId(), new TreeSet<>(), false, true);
+                    javaCFG.addNode(exitBlock);
+                }
+                bytecodeToJavaMap.put(b, exitBlock);
+            } else if (b.getLines()!= null &&!b.getLines().isEmpty()) {
+                Set<Integer> lines = b.getLines();
+                Set<Integer> filteredLines = new TreeSet<>();
+                for (int lineNum : lines) {
+                    String lineText = getSourceLineText(lineNum);
+                    if (lineText != null && lineText.trim().equals("}")) {
+                        continue; // Strip this line from the block mapping
+                    }
+                    filteredLines.add(lineNum);
+                }
+
+                // Skip the block completely if it contains only closing braces
+                if (filteredLines.isEmpty()) {
+                    continue;
+                }
+                JavaCodeBlock targetBlock = normalBlocksMap.get(filteredLines);
+                if (targetBlock == null) {
+                    // Use the ID of the first encountered block in this equivalence class
+                    targetBlock = new JavaCodeBlock(b.getId(), filteredLines, false, false);
+                    javaCFG.addNode(targetBlock);
+                    normalBlocksMap.put(filteredLines, targetBlock);
+                }
+                bytecodeToJavaMap.put(b, targetBlock);
             }
-
-            JavaCodeBlock javaBlock = new JavaCodeBlock(bcBlock.getId(), bcBlock.isEntry(), bcBlock.isExit());
-            for (int line : bcBlock.getLines()) {
-                javaBlock.addLine(line);
-            }
-
-            javaCodeCFG.addNode(javaBlock);
-            bcToJavaMap.put(bcBlock, javaBlock);
+            // Bytecode blocks with no mapped line numbers are excluded from Phase 1.
         }
 
-        // 2. Map control-flow edges, bypassing any bypassed empty blocks
-        for (Iterator<BytecodeBlock> it = bytecodeCFG.iterator(); it.hasNext(); ) {
-            BytecodeBlock srcBc = it.next();
-            JavaCodeBlock srcJava = bcToJavaMap.get(srcBc);
-            if (srcJava == null) continue; // Skipped block
-
-            for (Iterator<BytecodeBlock> succIt = bytecodeCFG.getSuccNodes(srcBc); succIt.hasNext(); ) {
-                BytecodeBlock destBc = succIt.next();
-                JavaCodeBlock destJava = findActiveJavaBlock(destBc, bcToJavaMap, bytecodeCFG, new java.util.HashSet<>());
-
-                if (destJava != null && !srcJava.equals(destJava)) {
-                    javaCodeCFG.addEdge(srcJava, destJava);
+        // Phase 2: Establish topological connections using transitive routing
+        for (BytecodeBlock b : bytecodeCFG) {
+            JavaCodeBlock srcJava = bytecodeToJavaMap.get(b);
+            if (srcJava!= null) {
+                for (Iterator<BytecodeBlock> it = bytecodeCFG.getSuccNodes(b); it.hasNext(); ) {
+                    BytecodeBlock succ = it.next();
+                    Set<BytecodeBlock> visited = new HashSet<>();
+                    resolveAndAddEdges(bytecodeCFG, succ, srcJava, javaCFG, bytecodeToJavaMap, visited);
                 }
             }
         }
 
-        return javaCodeCFG;
+        return javaCFG;
     }
 
-    // Helper method to traverse through skipped blocks to find the next valid destination block
-    private static JavaCodeBlock findActiveJavaBlock(
-            BytecodeBlock current,
-            Map<BytecodeBlock, JavaCodeBlock> map,
-            Graph<BytecodeBlock> graph,
-            Set<BytecodeBlock> visited
-    ) {
-        if (current == null || !visited.add(current)) return null;
+    private static SlowSparseNumberedGraph<JavaCodeBlock> coalesceStraightLineBlocks(
+            SlowSparseNumberedGraph<JavaCodeBlock> inputGraph) {
 
-        JavaCodeBlock mapped = map.get(current);
-        if (mapped != null) {
-            return mapped;
+        SlowSparseNumberedGraph<JavaCodeBlock> graph = SlowSparseNumberedGraph.make();
+        Map<JavaCodeBlock, JavaCodeBlock> oldToNew = new HashMap<>();
+
+        // 1. Clone the graph to prevent concurrent modification of the parameter graph
+        for (JavaCodeBlock b : inputGraph) {
+            JavaCodeBlock copy = new JavaCodeBlock(b.getId(), b.getLines(), b.isEntry(), b.isExit());
+            graph.addNode(copy);
+            oldToNew.put(b, copy);
         }
-
-        // If current was skipped, look at its successors
-        for (Iterator<BytecodeBlock> it = graph.getSuccNodes(current); it.hasNext(); ) {
-            JavaCodeBlock found = findActiveJavaBlock(it.next(), map, graph, visited);
-            if (found != null) {
-                return found;
+        for (JavaCodeBlock b : inputGraph) {
+            JavaCodeBlock srcNew = oldToNew.get(b);
+            for (Iterator<JavaCodeBlock> it = inputGraph.getSuccNodes(b); it.hasNext(); ) {
+                JavaCodeBlock dstNew = oldToNew.get(it.next());
+                graph.addEdge(srcNew, dstNew);
             }
         }
-        return null;
+
+        // 2. Perform iterative edge-contraction contracts
+        boolean changed = true;
+        while (changed) {
+            changed = false;
+            JavaCodeBlock uToMerge = null;
+            JavaCodeBlock vToMerge = null;
+
+            for (JavaCodeBlock u : graph) {
+                if (u.isEntry() || u.isExit()) continue;
+
+                // Condition 1: out-degree of u must be exactly 1
+                int succCount = 0;
+                JavaCodeBlock singleSucc = null;
+                for (Iterator<JavaCodeBlock> it = graph.getSuccNodes(u); it.hasNext(); ) {
+                    singleSucc = it.next();
+                    succCount++;
+                }
+
+                if (succCount == 1 && singleSucc!= null &&!singleSucc.isEntry() &&!singleSucc.isExit()) {
+                    // Condition 2: in-degree of the successor must be exactly 1
+                    int predCount = 0;
+                    JavaCodeBlock singlePred = null;
+                    for (Iterator<JavaCodeBlock> it = graph.getPredNodes(singleSucc); it.hasNext(); ) {
+                        singlePred = it.next();
+                        predCount++;
+                    }
+
+                    if (predCount == 1 && singlePred.equals(u)) {
+                        uToMerge = u;
+                        vToMerge = singleSucc;
+                        changed = true;
+                        break;
+                    }
+                }
+            }
+
+            if (changed && uToMerge!= null && vToMerge!= null) {
+                // Combine line numbers of the two statements
+                uToMerge.getLines().addAll(vToMerge.getLines());
+
+                // Fetch downstream successors of the destination block
+                List<JavaCodeBlock> successors = new ArrayList<>();
+                for (Iterator<JavaCodeBlock> it = graph.getSuccNodes(vToMerge); it.hasNext(); ) {
+                    successors.add(it.next());
+                }
+
+                // Remove the internal connection edge
+                graph.removeEdge(uToMerge, vToMerge);
+
+                // Redirect remaining transitions to the consolidated node
+                for (JavaCodeBlock succ : successors) {
+                    graph.removeEdge(vToMerge, succ);
+                    if (!uToMerge.equals(succ) &&!graph.hasEdge(uToMerge, succ)) {
+                        graph.addEdge(uToMerge, succ);
+                    }
+                }
+
+                // Remove the redundant, now empty, block
+                graph.removeNode(vToMerge);
+            }
+        }
+
+        return graph;
     }
 
-    // --- UTILITIES ---
+    private static void resolveAndAddEdges(
+            SlowSparseNumberedGraph<BytecodeBlock> bytecodeCFG,
+            BytecodeBlock currentBytecode,
+            JavaCodeBlock srcJava,
+            SlowSparseNumberedGraph<JavaCodeBlock> javaCFG,
+            Map<BytecodeBlock, JavaCodeBlock> bytecodeToJavaMap,
+            Set<BytecodeBlock> visited) {
 
-    private static void loadSourceCode(String filepath) {
-        File file = new File(filepath);
-        if (!file.exists()) {
-            System.out.println("Warning: Source code file does not exist: " + filepath);
+        if (visited.contains(currentBytecode)) {
             return;
         }
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String line;
-            while ((line = reader.readLine())!= null) {
-                sourceCodeLines.add(line);
-            }
-            System.out.println("Loaded " + sourceCodeLines.size() + " lines from " + filepath);
-        } catch (IOException e) {
-            System.err.println("Warning: Could not read source code file: " + e.getMessage());
-        }
-    }
+        visited.add(currentBytecode);
 
-    private static String getSourceLineText(int lineNum) {
-        if (lineNum <= 0 || lineNum > sourceCodeLines.size()) {
-            return "";
+        JavaCodeBlock targetJava = bytecodeToJavaMap.get(currentBytecode);
+        if (targetJava!= null) {
+            // Found a valid destination block belonging to a different equivalence class
+            if (!srcJava.equals(targetJava)) {
+                if (!javaCFG.hasEdge(srcJava, targetJava)) {
+                    javaCFG.addEdge(srcJava, targetJava);
+                }
+            }
+        } else {
+            // Recurse downstream through skipped or empty intermediate blocks
+            for (Iterator<BytecodeBlock> it = bytecodeCFG.getSuccNodes(currentBytecode); it.hasNext(); ) {
+                BytecodeBlock succ = it.next();
+                resolveAndAddEdges(bytecodeCFG, succ, srcJava, javaCFG, bytecodeToJavaMap, visited);
+            }
         }
-        return sourceCodeLines.get(lineNum - 1);
     }
 
     private static String escapeForDot(String text) {
         if (text == null) return "";
         return text.replace("\\", "\\\\")
                 .replace("\"", "\\\"")
-                .replace("\n", "\\n")
-                .replace("\r", "")
-                .trim();
+                .replace("\n", "\\l")
+                .replace("\r", "");
     }
-
-    // --- DOT GRAPH EXPORTERS ---
 
     private static void exportSsaCFGToDot(PrunedCFG ssaCFG, String filepath) throws IOException {
         try (PrintWriter out = new PrintWriter(new FileWriter(filepath))) {
@@ -388,7 +481,7 @@ public class WalaCFGGenerator {
         }
     }
 
-    private static void exportBytecodeCFGToDot(Graph<BytecodeBlock> bytecodeCFG, String filepath) throws IOException {
+    private static void exportBytecodeCFGToDot(SlowSparseNumberedGraph<BytecodeBlock> bytecodeCFG, String filepath) throws IOException {
         try (PrintWriter out = new PrintWriter(new FileWriter(filepath))) {
             out.println("digraph Reconstructed_Bytecode_CFG {");
             out.println("  node [shape=box, color=blue, fontname=\"Courier\"];");
@@ -436,7 +529,7 @@ public class WalaCFGGenerator {
         }
     }
 
-    private static void exportJavaCodeCFGToDot(Graph<JavaCodeBlock> lineCFG, String filepath) throws IOException {
+    private static void exportJavaCodeCFGToDot(SlowSparseNumberedGraph<JavaCodeBlock> lineCFG, String filepath) throws IOException {
         try (PrintWriter out = new PrintWriter(new FileWriter(filepath))) {
             out.println("digraph Mapped_JavaCode_CFG {");
             out.println("  node [shape=box, style=filled, fillcolor=lightyellow, fontname=\"Courier\"];");
@@ -487,33 +580,16 @@ public class WalaCFGGenerator {
         }
     }
 
-    public static boolean convertDotToPdf(String dotFilePath, String pdfFilePath) {
+    private static void convertDotToPdf(String dotPath, String pdfPath) {
         try {
-            String[] command = { "dot", "-Tpdf", dotFilePath, "-o", pdfFilePath };
-
-            ProcessBuilder pb = new ProcessBuilder(command);
-            pb.redirectErrorStream(true); // Merges error stream with standard output
-
-            Process process = pb.start();
-
-            int exitCode = process.waitFor();
-
-            if (exitCode == 0) {
-                System.out.println("Success! PDF generated at: " + pdfFilePath);
-                return true;
-            } else {
-                System.err.println("Graphviz failed with exit code: " + exitCode);
-                return false;
+            ProcessBuilder pb = new ProcessBuilder("dot", "-Tpdf", dotPath, "-o", pdfPath);
+            Process p = pb.start();
+            int exitCode = p.waitFor();
+            if (exitCode!= 0) {
+                System.err.println("Graphviz exited with error code " + exitCode + " for file: " + dotPath);
             }
-
-        } catch (IOException e) {
-            System.err.println("Failed to run Graphviz. Is 'dot' installed and added to your system PATH?");
-            e.printStackTrace();
-            return false;
-        } catch (InterruptedException e) {
-            System.err.println("The compilation process was interrupted.");
-            Thread.currentThread().interrupt(); // Restore interrupted status
-            return false;
+        } catch (Exception e) {
+            System.err.println("Graphviz conversion failed. Ensure 'dot' command is installed and in system PATH.");
         }
     }
 }

@@ -1,0 +1,10 @@
+digraph SSA_CFG {
+  node [shape=box, fontname="Courier"];
+  0 [label="Block 0\n"];
+  1 [label="Block 1\nIR Range: [0, 1]\n1: invokespecial < Application, Ljava/lang/Object, <init>()V > 1 @1 exception:3\n"];
+  2 [label="Block 2\nIR Range: [2, 2]\n2: return\n"];
+  3 [label="Block 3\n"];
+  0 -> 1;
+  1 -> 2;
+  2 -> 3;
+}
