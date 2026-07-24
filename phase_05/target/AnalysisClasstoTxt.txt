@@ -1,0 +1,57 @@
+Compiled from "AnalysisClass.java"
+public class AnalysisClass {
+  public AnalysisClass();
+    Code:
+       0: aload_0
+       1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+       4: return
+
+  public static void main(java.lang.String[]);
+    Code:
+       0: iconst_0
+       1: istore_1
+       2: iconst_2
+       3: istore_2
+       4: getstatic     #7                  // Field java/lang/System.out:Ljava/io/PrintStream;
+       7: ldc           #13                 // String First 10 primes:
+       9: invokevirtual #15                 // Method java/io/PrintStream.print:(Ljava/lang/String;)V
+      12: iload_1
+      13: bipush        10
+      15: if_icmpge     87
+      18: iconst_1
+      19: istore_3
+      20: iconst_2
+      21: istore        4
+      23: iload         4
+      25: iload_2
+      26: iconst_2
+      27: idiv
+      28: if_icmpgt     49
+      31: iload_2
+      32: iload         4
+      34: irem
+      35: ifne          43
+      38: iconst_0
+      39: istore_3
+      40: goto          49
+      43: iinc          4, 1
+      46: goto          23
+      49: iload_3
+      50: ifeq          81
+      53: getstatic     #7                  // Field java/lang/System.out:Ljava/io/PrintStream;
+      56: iload_2
+      57: iload_1
+      58: bipush        9
+      60: if_icmpge     68
+      63: ldc           #21                 // String  ->
+      65: goto          70
+      68: ldc           #23                 // String
+      70: invokedynamic #25,  0             // InvokeDynamic #0:makeConcatWithConstants:(ILjava/lang/String;)Ljava/lang/String;
+      75: invokevirtual #15                 // Method java/io/PrintStream.print:(Ljava/lang/String;)V
+      78: iinc          1, 1
+      81: iinc          2, 1
+      84: goto          12
+      87: getstatic     #7                  // Field java/lang/System.out:Ljava/io/PrintStream;
+      90: invokevirtual #29                 // Method java/io/PrintStream.println:()V
+      93: return
+}

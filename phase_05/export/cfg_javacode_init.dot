@@ -1,0 +1,8 @@
+digraph Mapped_JavaCode_CFG {
+  node [shape=box, style=filled, fillcolor=lightyellow, fontname="Courier"];
+  0 [label="ENTRY"];
+  1 [label="Block 1\n-----------------------------\nL1: public class AnalysisClass {"];
+  3 [label="EXIT"];
+  0 -> 1;
+  1 -> 3;
+}
