@@ -495,6 +495,7 @@ public class ComplexDeadStoreDriver {
 
             if (classHasFindings) {
                 totalClassesWithFindings++;
+                System.out.println("-------------------------------------------------------------------------");
                 System.out.print(classOutput.toString());
             }
         }
@@ -530,25 +531,65 @@ public class ComplexDeadStoreDriver {
 - `args[0]` — path to a WALA analysis scope file covering the application classes to analyze
 - `args[1]` — --exclude-params decide to track params as dead store or not
 
+### Sample input
+```java
+public class Main {
+    private class MyNestedClass {
+        public int myNestedField = 12;
+        private void myNestedMethod(int myPar1) {
+            System.out.println("Method in the nested class.");
+        }
+    }
+    private static int myField = 13;
+
+    public static void main(String[] args) {
+        int myVar = 14;
+        int myVar2 = 23;
+        myMethod(myVar);
+    }
+
+    private static void myMethod(int myPar2) {
+        System.out.println("Method in the class.");
+    }
+}
+```
+
 ### Sample Output Shape
 
 ```text
 Dead Store Analysis Report
 Input: scopeFile.txt
+Exclude Parameters: false
 
-Class: com.example.Main
-  Method: helper
-    Line 12 | 'temp'        | Unused computation: temp = 5
-  Found 1 dead store(s) in helper
+-------------------------------------------------------------------------
+Class: Main
+  Method: <clinit>
+    Line 8  | 'myField      ' | Unused field (never read)
+  Found 1 dead store(s) in <clinit>
 
-Class: com.example.Main$Nested
+  Method: main
+    Line 12 | 'myVar2       ' | Unused computation: myVar2 = 23
+    Line 11 | 'args         ' | Unused parameter
+  Found 2 dead store(s) in main
+
+  Method: myMethod
+    Line 17 | 'myPar2       ' | Unused parameter
+  Found 1 dead store(s) in myMethod
+
+-------------------------------------------------------------------------
+Class: Main$MyNestedClass
   Method: <init>
-    Line 20 | 'unusedField' | Unused field (never read)
+    Line 3  | 'myNestedField' | Unused field (never read)
   Found 1 dead store(s) in <init>
 
+  Method: myNestedMethod
+    Line 5  | 'myPar1       ' | Unused parameter
+  Found 1 dead store(s) in myNestedMethod
+
 =========================================================================
-Total: 2 dead store(s) found across 2 method(s) in 2 class(es)
+Total: 6 dead store(s) found across 5 method(s) in 2 class(es)
 =========================================================================
+
 ```
 
 ## Notes / Limitations

@@ -8,7 +8,7 @@ Extends the base liveness tool: in addition to printing per-instruction liveness
 
 | | |
 |---|---|
-| **Input** | Path to a WALA analysis scope file, and (optionally) a path to source for line-text lookup |
+| **Input** | Path to a WALA analysis scope file, and a path to source for line-text lookup |
 | **Output** | Terminal dataflow report, plus three PDFs written to `out-class/cfg-out/`: `Liveness_Exploded_CFG.pdf`, `Liveness_Source_Exploded_CFG.pdf`, `Liveness_Source_Merged_CFG.pdf` |
 
 ## Program Code
