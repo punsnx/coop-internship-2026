@@ -1,4 +1,5 @@
 Dead store detected:
   Variable: unusedInCompute, Line: 3
   Variable: x, Line: 12
-  Variable: dead, Line: 25
+  Variable: test, Line: 32
+  Variable: dead, Line: 38
