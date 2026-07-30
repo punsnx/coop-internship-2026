@@ -1,0 +1,2 @@
+Primordial,Java,stdlib,none
+Application,Java,binaryDir,../fibo/out-class
