@@ -1,0 +1,4 @@
+Dead store detected:
+  Field: helperField, Line: 3
+  Parameter: helperPar, Line: 5
+  Variable: local, Line: 10
