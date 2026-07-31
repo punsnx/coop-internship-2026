@@ -24,7 +24,6 @@ import java.util.*;
 
 public class WalaCFGGenerator {
 
-    // Multi-file source registry mapping simple class names to line lists
     private static final Map<String, List<String>> sourceFileMap = new HashMap<>();
 
     public static class BytecodeBlock {
