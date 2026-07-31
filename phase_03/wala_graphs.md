@@ -1,4 +1,4 @@
-# Program Representation Graphs in WALA (Draft)
+# Program Representation Graphs in WALA
 
 ---
 

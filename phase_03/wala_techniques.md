@@ -1,4 +1,4 @@
-# Static Analysis Techniques in WALA (Draft)
+# Static Analysis Techniques in WALA
 
 ---
 
