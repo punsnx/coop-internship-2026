@@ -1,6 +1,6 @@
 public class Main {
     static int compute(int n) {
-        int unusedInCompute = 100;
+        int unusedInCompute = 100; //
         int total = 0;
         for (int i = 0; i < n; i++) {
             total = total + i;
@@ -22,7 +22,7 @@ public class Main {
         System.out.println("Meow");
     }
 
-    private static int outsider = 99;
+    private static int outsider = 99; //
 
     public static void main(String[] args) {
         int test = 67;
@@ -31,6 +31,6 @@ public class Main {
         int result = compute(5);
         System.out.println(result);
         branch(true);
-        int dead = 42;
+        int dead = 42; //
     }
 }

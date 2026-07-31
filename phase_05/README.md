@@ -98,4 +98,4 @@ Per the phase assumptions, the input is a single Java file.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT — see [LICENSE](../LICENSE).
