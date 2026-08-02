@@ -47,16 +47,36 @@ public class DeadStoreDetector {
       }
     }
 
-    File source = new File(args[0]);
-    if (!source.exists()) {
-      System.out.println("Error: File not found: " + args[0]);
+    // Resolve the input: either a single .java file or a directory of them.
+    File input = new File(args[0]);
+    if (!input.exists()) {
+      System.out.println("Error: path not found: " + args[0]);
       System.exit(1);
     }
 
-    // 1. Compile the .java file to .class in a temp directory
+    // Collect the .java files to compile.
+    List<String> sourceFiles = new ArrayList<>();
+    if (input.isDirectory()) {
+      // Recursively gather every .java file under the directory.
+      try (Stream<Path> paths = Files.walk(input.toPath())) {
+        paths
+                .filter(Files::isRegularFile)
+                .filter(p -> p.toString().endsWith(".java"))
+                .forEach(p -> sourceFiles.add(p.toAbsolutePath().toString()));
+      }
+      if (sourceFiles.isEmpty()) {
+        System.out.println("Error: no .java files found under " + args[0]);
+        System.exit(1);
+      }
+    } else {
+      // A single file, exactly as before.
+      sourceFiles.add(input.getAbsolutePath());
+    }
+
+    // 1. Compile all collected .java files to .class in a temp directory.
+    //    Compiling them together puts every class in one scope, so a field or
+    //    method defined in one file and used in another is seen correctly.
     Path classDir = Files.createTempDirectory("deadstore-classes");
-    // Every error path below calls System.exit, so clean up from a shutdown hook
-    // rather than at the end of main, which those paths never reach
     Runtime.getRuntime().addShutdownHook(new Thread(() -> deleteRecursively(classDir)));
 
     JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
@@ -65,11 +85,16 @@ public class DeadStoreDetector {
       System.exit(1);
     }
 
-    int rc =
-        compiler.run(null, null, null, "-g", "-d", classDir.toString(), source.getAbsolutePath());
+    // Build the argument array: -g -d <classDir> <file1> <file2> ...
+    List<String> compilerArgs = new ArrayList<>();
+    compilerArgs.add("-g");
+    compilerArgs.add("-d");
+    compilerArgs.add(classDir.toString());
+    compilerArgs.addAll(sourceFiles);
 
+    int rc = compiler.run(null, null, null, compilerArgs.toArray(new String[0]));
     if (rc != 0) {
-      System.out.println("Error: failed to compile " + source);
+      System.out.println("Error: failed to compile the input source(s)");
       System.exit(1);
     }
 
