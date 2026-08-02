@@ -19,28 +19,29 @@ build familiarity with WALA; the final two develop a static analysis tool of my
 own — a **dead-store detector** for Java.
 
 A dead store is a variable, field, or parameter that is assigned a value which is
-never used. The detector finds them and reports each with its source location.
+never used. The detector finds them and reports each with its name, source line,
+and file.
 
 ## Contents
 
-| Phase | Folder | Description |
-|-------|--------|-------------|
+| Phase | Folder | Description                                                                                    |
+|-------|--------|------------------------------------------------------------------------------------------------|
 | 1 | `phase_01/` | Running and documenting WALA's example analyses; JDK compatibility and reproducibility testing |
-| 2 | `phase_02/` | A survey of static analysis techniques and program representation graphs |
-| 3 | `phase_03/` | Mapping those techniques and graphs to their implementations in WALA |
-| 4 | `phase_04/` | The dead-store detector (local variables), with an interprocedural cascade |
-| 5 | `phase_05/` | Extended detector: unused fields, parameters, and nested classes |
+| 2 | `phase_02/` | A survey of static analysis techniques and program representation graphs                       |
+| 3 | `phase_03/` | Mapping those techniques and graphs to their implementations in WALA                           |
+| 4 | `phase_04/` | The dead-store detector (local variables), with an interprocedural cascade                     |
+| 5 | `phase_05/` | Extended detector: unused fields, parameters, nested classes, and multiple files/directories   |
 
 Each phase folder contains its own deliverables and, where applicable, a README,
 test cases, and expected outputs.
 
 ## The Dead-Store Detector (Phases 4–5)
 
-The tool compiles a Java source file, builds WALA's SSA intermediate
-representation, and uses def-use information to find values that are assigned but
-never read. It reports three kinds of dead store — unused local variables, unused
-class fields, and unused method parameters — across nested classes and multiple
-methods.
+The tool compiles Java source, builds WALA's SSA intermediate representation, and
+uses def-use information to find values that are assigned but never read. It
+reports three kinds of dead store — unused local variables, unused class fields,
+and unused method parameters — across nested classes, multiple methods, and
+multiple files/directories. Each finding is reported with its name, source line, and file.
 
 See `phase_05/` for the latest version, its usage instructions, test cases, and a
 documented account of its limitations (`LIMITATIONS.md`).
