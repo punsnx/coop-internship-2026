@@ -1,5 +1,1 @@
 No dead stores detected.
-
-NOTE: This output is incorrect and is recorded deliberately.
-Two locals hold the same literal (a = 5, b = 5); b is a dead store
-but is not reported. See LIMITATIONS.md section 1.

@@ -1,6 +1,6 @@
 Dead store detected:
-  Field: myNestedField, Line: 5
-  Field: myField, Line: 12
-  Parameter: myPar1, Line: 8
-  Parameter: myPar2, Line: 21
-  Variable: myVar2, Line: 15
+  Field: myNestedField, Line: 5 at "com/example/Main.java"
+  Field: myField, Line: 12 at "com/example/Main.java"
+  Parameter: myPar1, Line: 8 at "com/example/Main.java"
+  Parameter: myPar2, Line: 21 at "com/example/Main.java"
+  Variable: myVar2, Line: 15 at "com/example/Main.java"

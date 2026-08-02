@@ -1,2 +1,2 @@
 Dead store detected:
-  Variable: dead, Line: 4
+  Variable: dead, Line: 4 at "Main.java"

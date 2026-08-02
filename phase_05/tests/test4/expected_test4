@@ -1,6 +1,6 @@
 Dead store detected:
-  Field: outsider, Line: 25
-  Parameter: meow, Line: 22
-  Variable: unusedInCompute, Line: 3
-  Variable: x, Line: 12
-  Variable: dead, Line: 34
+  Field: outsider, Line: 25 at "Main.java"
+  Parameter: meow, Line: 22 at "Main.java"
+  Variable: unusedInCompute, Line: 3 at "Main.java"
+  Variable: x, Line: 12 at "Main.java"
+  Variable: dead, Line: 34 at "Main.java"
