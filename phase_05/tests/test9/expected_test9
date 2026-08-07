@@ -1,0 +1,2 @@
+Dead store detected:
+  Field: neverRead, Line: 4 at "demo/Helper.java"

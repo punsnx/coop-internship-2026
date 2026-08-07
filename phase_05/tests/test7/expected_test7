@@ -1,2 +1,2 @@
 Dead store detected:
-  Field: deadField, Line: 3
+  Field: deadField, Line: 3 at "Main.java"

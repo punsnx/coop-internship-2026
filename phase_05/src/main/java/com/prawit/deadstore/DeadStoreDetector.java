@@ -36,7 +36,7 @@ import javax.tools.ToolProvider;
 public class DeadStoreDetector {
   public static void main(String[] args) throws Exception {
     if (args.length < 1) {
-      System.out.println("Usage: DeadStoreDetector <path-to-java-file> [--debug]");
+      System.out.println("Usage: DeadStoreDetector <path-to-java-file-or-directory> [--debug]");
       System.exit(1);
     }
 
@@ -47,13 +47,35 @@ public class DeadStoreDetector {
       }
     }
 
-    File source = new File(args[0]);
-    if (!source.exists()) {
-      System.out.println("Error: File not found: " + args[0]);
+    // Resolve the input: either a single .java file or a directory of them.
+    File input = new File(args[0]);
+    if (!input.exists()) {
+      System.out.println("Error: path not found: " + args[0]);
       System.exit(1);
     }
 
-    // 1. Compile the .java file to .class in a temp directory
+    // Collect the .java files to compile.
+    List<String> sourceFiles = new ArrayList<>();
+    if (input.isDirectory()) {
+      // Recursively gather every .java file under the directory.
+      try (Stream<Path> paths = Files.walk(input.toPath())) {
+        paths
+            .filter(Files::isRegularFile)
+            .filter(p -> p.toString().endsWith(".java"))
+            .forEach(p -> sourceFiles.add(p.toAbsolutePath().toString()));
+      }
+      if (sourceFiles.isEmpty()) {
+        System.out.println("Error: no .java files found under " + args[0]);
+        System.exit(1);
+      }
+    } else {
+      // A single file, exactly as before.
+      sourceFiles.add(input.getAbsolutePath());
+    }
+
+    // 1. Compile all collected .java files to .class in a temp directory.
+    //    Compiling them together puts every class in one scope, so a field or
+    //    method defined in one file and used in another is seen correctly.
     Path classDir = Files.createTempDirectory("deadstore-classes");
     // Every error path below calls System.exit, so clean up from a shutdown hook
     // rather than at the end of main, which those paths never reach
@@ -65,16 +87,22 @@ public class DeadStoreDetector {
       System.exit(1);
     }
 
-    int rc =
-        compiler.run(null, null, null, "-g", "-d", classDir.toString(), source.getAbsolutePath());
+    // Build the argument array: -g -d <classDir> <file1> <file2> ...
+    List<String> compilerArgs = new ArrayList<>();
+    compilerArgs.add("-g");
+    compilerArgs.add("-d");
+    compilerArgs.add(classDir.toString());
+    compilerArgs.addAll(sourceFiles);
 
+    int rc = compiler.run(null, null, null, compilerArgs.toArray(new String[0]));
     if (rc != 0) {
-      System.out.println("Error: failed to compile " + source);
+      System.out.println("Error: failed to compile the input source(s)");
       System.exit(1);
     }
 
     // 2. Scope only the classes we just compiled)
-    AnalysisScope scope = AnalysisScopeReader.instance.makeJavaBinaryAnalysisScope(classDir.toString(), null);
+    AnalysisScope scope =
+        AnalysisScopeReader.instance.makeJavaBinaryAnalysisScope(classDir.toString(), null);
 
     // 3. Class hierarchy
     ClassHierarchy cha = ClassHierarchyFactory.make(scope);
@@ -107,7 +135,7 @@ public class DeadStoreDetector {
         if (debug) {
           dumpIR(ir, du);
         }
-        findDeadStores(ir, du, deadStores);
+        findDeadStores(klass, ir, du, deadStores);
       }
     }
 
@@ -124,7 +152,16 @@ public class DeadStoreDetector {
           Comparator.comparingInt((Finding f) -> f.category.order).thenComparingInt(f -> f.line));
       System.out.println("Dead store detected:");
       for (Finding f : deadStores) {
-        System.out.println("  " + f.category.label + ": " + f.name + ", Line: " + f.line);
+        System.out.println(
+            "  "
+                + f.category.label
+                + ": "
+                + f.name
+                + ", Line: "
+                + f.line
+                + " at \""
+                + f.file
+                + "\"");
       }
     }
   }
@@ -148,15 +185,19 @@ public class DeadStoreDetector {
     final Category category;
     final String name;
     final int line;
+    final String file;
 
-    Finding(Category category, String name, int line) {
+    Finding(Category category, String name, int line, String file) {
       this.category = category;
       this.name = name;
       this.line = line;
+      this.file = file;
     }
   }
 
-  /** Delete the temp class directory, depth first. Best effort: a leftover file must not fail a run */
+  /**
+   * Delete the temp class directory, depth first. Best effort: a leftover file must not fail a run
+   */
   private static void deleteRecursively(Path dir) {
     try (Stream<Path> paths = Files.walk(dir)) {
       paths
@@ -194,7 +235,8 @@ public class DeadStoreDetector {
 
         Set<Integer> unused = new HashSet<>();
 
-        // Position 0 of an instance method is `this`. A receiver is not a source-level parameter, so skip it
+        // Position 0 of an instance method is `this`. A receiver is not a source-level parameter,
+        // so skip it
         int start = method.isStatic() ? 0 : 1;
 
         for (int pos = start; pos < ir.getNumberOfParameters(); pos++) {
@@ -213,7 +255,7 @@ public class DeadStoreDetector {
   }
 
   /** Walk every value number in the method, not every instruction */
-  private static void findDeadStores(IR ir, DefUse du, List<Finding> out) {
+  private static void findDeadStores(IClass klass, IR ir, DefUse du, List<Finding> out) {
     SymbolTable symbolTable = ir.getSymbolTable();
 
     for (int v = 1; v <= symbolTable.getMaxValueNumber(); v++) {
@@ -236,7 +278,7 @@ public class DeadStoreDetector {
       // The LocalVariableTable scope for a local opens immediately after its store, so the store is
       // the preceding instruction
       int line = lineNumberFor(ir, nameIndex - 1);
-      out.add(new Finding(Category.VARIABLE, name, line));
+      out.add(new Finding(Category.VARIABLE, name, line, sourceFileOf(klass)));
     }
   }
 
@@ -262,6 +304,19 @@ public class DeadStoreDetector {
     } catch (Exception e) {
       return -1;
     }
+  }
+
+  /** Source file path of a class */
+  private static String sourceFileOf(IClass klass) {
+    String name = klass.getName().toString(); // e.g. "Lmodel/Data" or "Lapp/Main$Inner"
+    if (name.startsWith("L")) {
+      name = name.substring(1); // drop the leading 'L'
+    }
+    int dollar = name.indexOf('$'); // a nested class lives in the outer class's file
+    if (dollar >= 0) {
+      name = name.substring(0, dollar);
+    }
+    return name + ".java";
   }
 
   /** Map an instruction index back to a source line number via the bytecode "LineNumberTable" */
@@ -319,7 +374,7 @@ public class DeadStoreDetector {
             continue; // synthetic outer-class reference on an inner class constructor
           }
           int line = parameterLine(method);
-          out.add(new Finding(Category.PARAMETER, names[0], line));
+          out.add(new Finding(Category.PARAMETER, names[0], line, sourceFileOf(klass)));
         }
       }
     }
@@ -367,7 +422,9 @@ public class DeadStoreDetector {
     written.forEach(
         (field, line) -> {
           if (!read.contains(field)) {
-            out.add(new Finding(Category.FIELD, field.getName().toString(), line));
+            IClass declaring = cha.lookupClass(field.getDeclaringClass());
+            String file = (declaring != null) ? sourceFileOf(declaring) : "unknown";
+            out.add(new Finding(Category.FIELD, field.getName().toString(), line, file));
           }
         });
   }

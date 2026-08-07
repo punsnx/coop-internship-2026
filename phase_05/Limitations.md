@@ -94,10 +94,20 @@ For clarity, these were tested and work:
   suppressed, since the JVM contract forces it to exist.
 - **Fields across methods:** A field written in one method and read in another
   is correctly seen as alive; a field written but never read is reported.
+- **Multiple files and packages:** When given a directory, all `.java` files are
+  compiled into one scope, so a field or method defined in one file and used in
+  another (including across packages) is correctly seen as alive. Verified by
+  `test9` (two files, one directory) and `test10` (two packages in
+  subdirectories).
 
 ---
 
 ## Scope
 
-Per the phase assumptions, the input is a single Java file. Multiple source
-files are not tested.
+The tool analyzes a single Java file or a directory of files compiled together as
+one closed set. It does not resolve against external libraries or source outside
+that set: a field or method used only by code not included in the input will be
+reported as dead, because no use of it is visible. This is the expected behavior
+for a self-contained program, but it means the tool is not suited to analyzing a
+library in isolation, where much of the public API is used only by external
+callers.

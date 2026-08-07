@@ -1,7 +1,7 @@
 Dead store detected:
-  Field: outerField, Line: 3
-  Field: innerField, Line: 6
-  Field: topField, Line: 18
-  Parameter: innerPar, Line: 9
-  Parameter: outerPar, Line: 14
-  Variable: local, Line: 21
+  Field: outerField, Line: 3 at "Main.java"
+  Field: innerField, Line: 6 at "Main.java"
+  Field: topField, Line: 18 at "Main.java"
+  Parameter: innerPar, Line: 9 at "Main.java"
+  Parameter: outerPar, Line: 14 at "Main.java"
+  Variable: local, Line: 21 at "Main.java"
