@@ -1,0 +1,193 @@
+=== build.gradle.kts toolchain set to Java 21 ===
+Stopping Daemon(s)
+1 Daemon stopped
+Launcher JVM:  21.0.7 (Oracle Corporation 21.0.7+8-LTS-245)
+Daemon JVM:    /Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home (no Daemon JVM specified, using current Java home)
+Starting a Gradle Daemon, 4 stopped Daemons could not be reused, use --status for details
+> Task :clean
+> Task :compileJava
+
+BUILD SUCCESSFUL in 3s
+2 actionable tasks: 2 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.3.0/userguide/configuration_cache_enabling.html
+=== Target: /Users/sirisuk/Desktop/SKDEV/CS/y4s1/internship/test-app/wala/fibo/target/classes/com/sirisuk/Main.class ===
+=== Target: /Users/sirisuk/Desktop/SKDEV/CS/y4s1/internship/work-repository/phase_4-5/cfgtool/src/main/resources/test-files/fibo.js ===
+Building WALA stdlib cache (one-time)...
+Copying WALA + ECJ dependency JARs (one-time)...
+> Task :compileJava
+> Task :processResources
+> Task :classes
+
+> Task :run
+7628 classes
+building call graph...
+
+=== com.sirisuk.Main.main([Ljava/lang/String;)V ===
+BB0+BB1+BB2  [ENTRY]
+    src (line 7)  AnalysisClass.run();
+    src (line 8)  }
+  -> BB3  [EXIT] 
+BB3  [EXIT]
+  -> 
+
+=== com.sirisuk.AnalysisClass.run()V ===
+BB0+BB1+BB2+BB3+BB4+BB5+BB6+BB7+BB8+BB9+BB10  [ENTRY]
+    src (line 28)  int n = 10;
+    src (line 30)  System.out.println("Fibonacci DP Demo (n = " + n + ")");
+    src (line 31)  System.out.println("Bottom-up : " + up(n));
+    src (line 32)  System.out.println("Top-down  : " + down(n));
+    src (line 34)  System.out.println("\nSequence (0.." + n + "):");
+  -> BB11  [FOR_INIT] 
+BB11  [FOR_INIT]
+    src (line 35)  for (int i = 0; i <= n; i++) {
+  -> BB12  [FOR_COND] 
+BB12  [FOR_COND]
+    src (line 35)  for (int i = 0; i <= n; i++) {
+  -> T:BB20+BB21 F:BB13 
+BB13
+    src (line 36)  System.out.print(up(i) + (i < n ? " " : "\n"));
+  -> BB14 
+BB14
+    src (line 36)  System.out.print(up(i) + (i < n ? " " : "\n"));
+  -> T:BB16 F:BB15 
+BB15
+    src (line 36)  System.out.print(up(i) + (i < n ? " " : "\n"));
+  -> BB17+BB18 
+BB16
+    src (line 36)  System.out.print(up(i) + (i < n ? " " : "\n"));
+  -> BB17+BB18 
+BB17+BB18
+    src (line 36)  System.out.print(up(i) + (i < n ? " " : "\n"));
+  -> BB19  [FOR_STEP] 
+BB19  [FOR_STEP]
+    src (line 35)  for (int i = 0; i <= n; i++) {
+  -> BB12  [FOR_COND] 
+BB20+BB21
+    src (line 39)  testLoop();
+    src (line 40)  }
+  -> BB22  [EXIT] 
+BB22  [EXIT]
+  -> 
+
+=== com.sirisuk.AnalysisClass.<clinit>()V ===
+BB0+BB1+BB2  [ENTRY]
+    src (line 18)  private static long[] memo = new long[100];
+  -> BB3  [EXIT] 
+BB3  [EXIT]
+  -> 
+
+=== com.sirisuk.AnalysisClass.up(I)J ===
+BB0  [ENTRY]
+  -> BB1  [IF] 
+BB1  [IF]
+    src (line 7)  if (n <= 1) return n;
+  -> T:BB3+BB4+BB5 F:BB2  [IF] 
+BB2  [IF]
+    src (line 7)  if (n <= 1) return n;
+  -> BB14  [EXIT] 
+BB3+BB4+BB5
+    src (line 8)  long[] dp = new long[n + 1];
+    src (line 9)  dp[0] = 0;
+    src (line 10)  dp[1] = 1;
+  -> BB6  [FOR_INIT] 
+BB6  [FOR_INIT]
+    src (line 11)  for (int i = 2; i <= n; i++) {
+  -> BB7  [FOR_COND] 
+BB7  [FOR_COND]
+    src (line 11)  for (int i = 2; i <= n; i++) {
+  -> T:BB12+BB13 F:BB8+BB9+BB10 
+BB8+BB9+BB10
+    src (line 12)  dp[i] = dp[i - 1] + dp[i - 2];
+  -> BB11  [FOR_STEP] 
+BB11  [FOR_STEP]
+    src (line 11)  for (int i = 2; i <= n; i++) {
+  -> BB7  [FOR_COND] 
+BB12+BB13
+    src (line 14)  return dp[n];
+  -> BB14  [EXIT] 
+BB14  [EXIT]
+  -> 
+
+=== com.sirisuk.AnalysisClass.down(I)J ===
+BB0  [ENTRY]
+  -> BB1  [IF] 
+BB1  [IF]
+    src (line 21)  if (n <= 1) return n;
+  -> T:BB3  [IF] F:BB2  [IF] 
+BB2  [IF]
+    src (line 21)  if (n <= 1) return n;
+  -> BB12  [EXIT] 
+BB3  [IF]
+    src (line 22)  if (memo[n] != 0) return memo[n];
+  -> BB4  [IF] 
+BB4  [IF]
+    src (line 22)  if (memo[n] != 0) return memo[n];
+  -> T:BB7+BB8+BB9+BB10+BB11 F:BB5  [IF] 
+BB5  [IF]
+    src (line 22)  if (memo[n] != 0) return memo[n];
+  -> BB6  [IF] 
+BB6  [IF]
+    src (line 22)  if (memo[n] != 0) return memo[n];
+  -> BB12  [EXIT] 
+BB7+BB8+BB9+BB10+BB11
+    src (line 23)  memo[n] = down(n - 1) + down(n - 2);
+    src (line 24)  return memo[n];
+  -> BB12  [EXIT] 
+BB12  [EXIT]
+  -> 
+
+=== com.sirisuk.AnalysisClass.testLoop()V ===
+BB0  [ENTRY]
+  -> BB1  [FOR_INIT] 
+BB1  [FOR_INIT]
+    src (line 43)  for (int i = 0; i < 10; i++) {
+  -> BB2  [FOR_COND] 
+BB2  [FOR_COND]
+    src (line 43)  for (int i = 0; i < 10; i++) {
+  -> T:BB5 F:BB3 
+BB3
+    src (line 44)  System.out.println("Hello World!");
+  -> BB4  [FOR_STEP] 
+BB4  [FOR_STEP]
+    src (line 43)  for (int i = 0; i < 10; i++) {
+  -> BB2  [FOR_COND] 
+BB5
+    src (line 47)  int i = 0;
+  -> BB6  [WHILE] 
+BB6  [WHILE]
+    src (line 48)  while(i < 10){
+  -> T:BB9 F:BB7+BB8 
+BB7+BB8
+    src (line 49)  System.out.println("Hello World!");
+    src (line 50)  i++;
+  -> BB6  [WHILE] 
+BB9
+    src (line 53)  int j = 0;
+  -> BB10 
+BB10
+    src (line 55)  System.out.println("Hello World!");
+  -> BB11 
+BB11
+    src (line 56)  j++;
+    src (line 57)  }while(j < 10);
+  -> T:BB10 F:BB12 
+BB12
+    src (line 58)  }
+  -> BB13  [EXIT] 
+BB13  [EXIT]
+  -> 
+spawning process [dot, -Tpdf, -o, out/newgraph_cfg.pdf, -v, /Users/sirisuk/Desktop/SKDEV/CS/y4s1/internship/work-repository/phase_4-5/cfgtool/out/newgraph_cfg.dot]
+process terminated with exit code 0
+Merged CFG PDF -> out/newgraph_cfg.pdf
+done
+took 1571ms
+Call graph stats:
+  Nodes: 1168
+  Edges: 4942
+  Methods: 710
+  Bytecode Bytes: 44900
+
+
+BUILD SUCCESSFUL in 2s
+3 actionable tasks: 3 executed
+Consider enabling configuration cache to speed up this build: https://docs.gradle.org/9.3.0/userguide/configuration_cache_enabling.html

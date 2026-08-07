@@ -1,0 +1,2 @@
+Primordial,Java,stdlib,none
+Application,Java,binaryDir,/Users/sirisuk/Desktop/SKDEV/CS/y4s1/internship/test-app/wala/fibo/target/classes/com/sirisuk
