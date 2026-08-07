@@ -1,0 +1,33 @@
+# Apple/Mac UI classes
+com\/apple\/.*
+apple\/.*
+
+# Swing/AWT UI (your code doesn't use UI)
+javax\/swing\/.*
+javax\/awt\/.*
+java\/awt\/.*
+sun\/awt\/.*
+sun\/swing\/.*
+
+# Security (not needed for your analysis)
+java\/security\/.*
+javax\/security\/.*
+javax\/crypto\/.*
+sun\/security\/.*
+
+# RMI/networking
+java\/rmi\/.*
+javax\/management\/.*
+sun\/rmi\/.*
+
+# JDK internal tools
+jdk\/.*
+com\/sun\/.*
+sun\/.*
+
+# Reflection (makes analysis explode in size)
+java\/lang\/reflect\/.*
+
+# Zip/jar internals
+java\/util\/zip\/.*
+java\/util\/jar\/.*
