@@ -13,7 +13,11 @@ Unlike the source-based driver, source-line lookup here goes through two steps: 
 | **Input** | Path to a WALA analysis scope file, and path to the corresponding `Main.java` source file |
 | **Output** | Source-level, exception-pruned CFG of `main` in `Main.java`, as `.dot` and `.pdf` files |
 
-This driver produces only the **Source Pruned CFG** (exception edges removed via `ExceptionPrunedCFG`) — it does not emit the raw SSA CFG or the unpruned source CFG.
+The driver produces three CFG variants:
+
+1. **SSA CFG** — raw WALA IR instructions per basic block
+2. **Source CFG** — basic blocks annotated with mapped source lines
+3. **Source Pruned CFG** — source-annotated CFG with exception edges removed (via `ExceptionPrunedCFG`)
 
 ## Program Code
 
@@ -57,7 +61,7 @@ public class SimpleCFGConstructFromByteDriver {
         String scopeFile = args[0];
         String srcFilePath = args[1]; // e.g. "testdata/com/cfgtest/Main.java"
 
-        // --- 1. Set up scope and build IR ---
+        // Set up scope
         AnalysisScope scope =
                 AnalysisScopeReader.instance.readJavaScope(
                         scopeFile,
@@ -68,7 +72,6 @@ public class SimpleCFGConstructFromByteDriver {
 
         IClassHierarchy cha = ClassHierarchyFactory.make(scope);
 
-        // Debug: list classes in the application scope
         for (IClass c : cha) {
             if (c.getClassLoader().getReference().equals(ClassLoaderReference.Application)) {
                 System.out.println(c.getName());
@@ -86,28 +89,139 @@ public class SimpleCFGConstructFromByteDriver {
         IR ir = cache.getIR(method, Everywhere.EVERYWHERE);
         System.out.println(ir);
 
-        // --- 2. Visualize Source Pruned CFG ---
+        // =========================================================================
+        // 1: Raw SSA CFG (Pure WALA IR Instructions from Bytecode)
+        // =========================================================================
+        String dotTextSSA = toDot(ir);
+        Path dotFileSSA = Path.of("out-class/cfg-out/SSA_CFG_From_Byte.dot");
+        Files.createDirectories(dotFileSSA.getParent());
+        Files.writeString(dotFileSSA, dotTextSSA);
+
+        ProcessBuilder pbSSA = new ProcessBuilder("dot", "-Tpdf", "out-class/cfg-out/SSA_CFG_From_Byte.dot", "-o", "out-class/cfg-out/SSA_CFG_From_Byte.pdf");
+        pbSSA.inheritIO();
+        Process processSSA = pbSSA.start();
+        int exitCodeSSA = processSSA.waitFor();
+        if (exitCodeSSA != 0) {
+            System.out.println("dot command failed for raw SSA CFG with exit code " + exitCodeSSA);
+        } else {
+            System.out.println("Raw SSA CFG PDF written to out-class/cfg-out/SSA_CFG_From_Byte.pdf");
+        }
+
         List<String> sourceLines = Files.readAllLines(Path.of(srcFilePath));
+
+        // =========================================================================
+        // 2: Raw / Unpruned Source CFG (Bytecode Mapping)
+        // =========================================================================
+        String dotTextSource = toDotSource(ir, sourceLines, method);
+        Path dotFileSource = Path.of("out-class/cfg-out/Source_CFG_From_Byte.dot");
+        Files.createDirectories(dotFileSource.getParent());
+        Files.writeString(dotFileSource, dotTextSource);
+
+        ProcessBuilder pbSource = new ProcessBuilder("dot", "-Tpdf", "out-class/cfg-out/Source_CFG_From_Byte.dot", "-o", "out-class/cfg-out/Source_CFG_From_Byte.pdf");
+        pbSource.inheritIO();
+        Process processSource = pbSource.start();
+        int exitCode = processSource.waitFor();
+        if (exitCode != 0) {
+            System.out.println("dot command failed for raw source CFG with exit code " + exitCode);
+        } else {
+            System.out.println("Raw Source CFG PDF written to out-class/cfg-out/Source_CFG_From_Byte.pdf");
+        }
+
+        // =========================================================================
+        // 3: Pruned Source CFG (Bytecode Mapping)
+        // =========================================================================
         String dotTextPrunedSource = toDotPrunedSource(ir, sourceLines, method);
         Path dotFilePrunedSource = Path.of("out-class/cfg-out/Source_Pruned_CFG_From_Byte.dot");
         Files.createDirectories(dotFilePrunedSource.getParent());
         Files.writeString(dotFilePrunedSource, dotTextPrunedSource);
 
-        ProcessBuilder pb = new ProcessBuilder("dot", "-Tpdf",
-                "out-class/cfg-out/Source_Pruned_CFG_From_Byte.dot",
-                "-o", "out-class/cfg-out/Source_Pruned_CFG_From_Byte.pdf");
-        pb.inheritIO();
-        Process process = pb.start();
-        int exitCode = process.waitFor();
+        ProcessBuilder pbPruned = new ProcessBuilder("dot", "-Tpdf", "out-class/cfg-out/Source_Pruned_CFG_From_Byte.dot", "-o", "out-class/cfg-out/Source_Pruned_CFG_From_Byte.pdf");
+        pbPruned.inheritIO();
+        Process processPruned = pbPruned.start();
+        exitCode = processPruned.waitFor();
         if (exitCode != 0) {
-            System.out.println("dot command failed with exit code " + exitCode);
+            System.out.println("dot command failed for pruned source CFG with exit code " + exitCode);
         } else {
-            System.out.println("Source CFG PDF written to out-class/cfg-out/Source_Pruned_CFG_From_Byte.pdf");
+            System.out.println("Pruned Source CFG PDF written to out-class/cfg-out/Source_Pruned_CFG_From_Byte.pdf");
         }
     }
 
-    // ---------- Source Pruned CFG ----------
+    // Helper function to create Dot file for Raw WALA SSA IR
+    private static String toDot(IR ir) {
+        SSACFG cfg = ir.getControlFlowGraph();
+        StringBuilder sb = new StringBuilder();
+        sb.append("digraph CFG {\n");
+        sb.append("  node [shape=box, fontname=\"monospace\"];\n");
 
+        for (ISSABasicBlock bb : cfg) {
+            String label = blockLabel(bb, ir);
+            sb.append("  BB").append(bb.getNumber())
+                    .append(" [label=\"").append(label).append("\"];\n");
+        }
+
+        // Control B: Color-code Normal (Black Solid) vs Exceptional (Red Dashed) Edges
+        for (ISSABasicBlock bb : cfg) {
+            for (ISSABasicBlock succ : cfg.getNormalSuccessors(bb)) {
+                sb.append("  BB").append(bb.getNumber())
+                        .append(" -> BB").append(succ.getNumber()).append(";\n");
+            }
+            for (ISSABasicBlock succ : cfg.getExceptionalSuccessors(bb)) {
+                sb.append("  BB").append(bb.getNumber())
+                        .append(" -> BB").append(succ.getNumber())
+                        .append(" [style=dashed, color=red];\n");
+            }
+        }
+
+        sb.append("}\n");
+        return sb.toString();
+    }
+
+    private static String blockLabel(ISSABasicBlock bb, IR ir) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("BB").append(bb.getNumber());
+        if (bb.isEntryBlock()) sb.append(" (ENTRY)");
+        else if (bb.isExitBlock()) sb.append(" (EXIT)");
+        sb.append("\\l");
+
+        for (Iterator<SSAInstruction> it = bb.iterator(); it.hasNext(); ) {
+            SSAInstruction inst = it.next();
+            String text = inst.toString().replace("\"", "\\\"");
+            sb.append(text).append("\\l");
+        }
+        return sb.toString();
+    }
+
+    // Helper function to create Dot file (For Raw/Unpruned Source CFG)
+    private static String toDotSource(IR ir, List<String> sourceLines, IMethod method) {
+        SSACFG cfg = ir.getControlFlowGraph();
+        StringBuilder sb = new StringBuilder();
+        sb.append("digraph CFG {\n");
+        sb.append("  node [shape=box, fontname=\"monospace\"];\n");
+
+        for (ISSABasicBlock bb : cfg) {
+            String label = blockLabelSource(bb, sourceLines, method);
+            sb.append("  BB").append(bb.getNumber())
+                    .append(" [label=\"").append(label).append("\"];\n");
+        }
+
+        // Control B: Color-code Normal (Black Solid) vs Exceptional (Red Dashed) Edges
+        for (ISSABasicBlock bb : cfg) {
+            for (ISSABasicBlock succ : cfg.getNormalSuccessors(bb)) {
+                sb.append("  BB").append(bb.getNumber())
+                        .append(" -> BB").append(succ.getNumber()).append(";\n");
+            }
+            for (ISSABasicBlock succ : cfg.getExceptionalSuccessors(bb)) {
+                sb.append("  BB").append(bb.getNumber())
+                        .append(" -> BB").append(succ.getNumber())
+                        .append(" [style=dashed, color=red];\n");
+            }
+        }
+
+        sb.append("}\n");
+        return sb.toString();
+    }
+
+    // Helper function to create Dot file (For Source Pruned CFG)
     private static String toDotPrunedSource(IR ir, List<String> sourceLines, IMethod method) {
         SSACFG cfg = ir.getControlFlowGraph();
         PrunedCFG<SSAInstruction, ISSABasicBlock> prunedCfg = ExceptionPrunedCFG.make(cfg);
@@ -124,8 +238,14 @@ public class SimpleCFGConstructFromByteDriver {
         for (ISSABasicBlock bb : prunedCfg) {
             for (Iterator<ISSABasicBlock> succs = prunedCfg.getSuccNodes(bb); succs.hasNext(); ) {
                 ISSABasicBlock succ = succs.next();
-                sb.append("  BB").append(bb.getNumber())
-                        .append(" -> BB").append(succ.getNumber()).append(";\n");
+                if (isOnlyExceptional(cfg, bb, succ)) {
+                    sb.append("  BB").append(bb.getNumber())
+                            .append(" -> BB").append(succ.getNumber())
+                            .append(" [style=dashed, color=red];\n");
+                } else {
+                    sb.append("  BB").append(bb.getNumber())
+                            .append(" -> BB").append(succ.getNumber()).append(";\n");
+                }
             }
         }
 
@@ -133,36 +253,59 @@ public class SimpleCFGConstructFromByteDriver {
         return sb.toString();
     }
 
-    /** Maps each instruction in a basic block to its source line, deduplicating consecutive repeats. */
+    // Helper function to create instructions in basic block (For Source CFG)
     private static String blockLabelSource(ISSABasicBlock bb, List<String> sourceLines, IMethod method) {
         StringBuilder sb = new StringBuilder();
-        sb.append("BB").append(bb.getNumber()).append("\\l");
+        sb.append("BB").append(bb.getNumber());
+
+        // Control A: Mark ENTRY and EXIT basic blocks explicitly
+        if (bb.isEntryBlock()) {
+            sb.append(" (ENTRY)");
+        } else if (bb.isExitBlock()) {
+            sb.append(" (EXIT)");
+        }
+        sb.append("\\l");
 
         int first = bb.getFirstInstructionIndex();
         int last = bb.getLastInstructionIndex();
-        String lastLine = null; // dedupe: multiple SSA instructions often share one source line
+        String lastLine = null;
+        int linesPrinted = 0;
 
         for (int i = first; i <= last; i++) {
             String text = getSourceLineText(method, i, sourceLines);
-            if (text == null) continue;          // no line mapping for this instruction
-            if (text.equals(lastLine)) continue;  // duplicate of previous line
+            if (text == null) continue;
+            if (text.equals(lastLine)) continue;
             sb.append(text.replace("\"", "\\\"")).append("\\l");
             lastLine = text;
+            linesPrinted++;
         }
+
+        // Control A: Explicitly tag empty non-entry/exit blocks (synthetic/compiler code)
+        boolean hasInstructions = first <= last;
+        if (linesPrinted == 0 && !bb.isEntryBlock() && !bb.isExitBlock() && hasInstructions) {
+            sb.append("  <compiler/synthetic code>\\l");
+        }
+
         return sb.toString();
     }
 
-    /** Maps an SSA instruction index back to source text via bytecode index -> line number. */
+    // Helper function to get source code line by mapping back from byte code
     private static String getSourceLineText(IMethod method, int instructionIndex, List<String> sourceLines) {
         try {
             IBytecodeMethod bytecodeMethod = (IBytecodeMethod) method;
             int bytecodeIndex = bytecodeMethod.getBytecodeIndex(instructionIndex);
             int line = method.getLineNumber(bytecodeIndex);
             if (line < 1 || line > sourceLines.size()) return null;
-            return sourceLines.get(line - 1).trim();
+            // Control C: Prepend explicit line numbers "line n : "
+            return "line " + line + " : " + sourceLines.get(line - 1).trim();
         } catch (Exception e) {
-            return null; // no line mapping available for this instruction
+            return null;
         }
+    }
+
+    // Helper to check if an edge is strictly exceptional
+    private static boolean isOnlyExceptional(SSACFG cfg, ISSABasicBlock src, ISSABasicBlock dst) {
+        return !cfg.getNormalSuccessors(src).contains(dst) && cfg.getExceptionalSuccessors(src).contains(dst);
     }
 }
 ```
